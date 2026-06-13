@@ -28,6 +28,9 @@ import {
 } from "@/components/ui/sidebar"
 import type { User } from "@/types/user"
 import Logout from "../auth/Logout"
+import { toast } from "sonner"
+import ProfileModal from "../chat/ProfileModal"
+import NotificationsModal from "../chat/NotificationsModal"
 
 
 
@@ -74,18 +77,22 @@ export function NavUser({user}: {user:User}) {
             </DropdownMenuLabel>
             <DropdownMenuSeparator />
             <DropdownMenuGroup>
-              <DropdownMenuItem>
-                <UserIcon className="text-muted-foreground dark:group-focus:!text-accent-foreground"/>
-                Tài Khoản
-              </DropdownMenuItem>
-              <DropdownMenuItem>
-                <Bell className="text-muted-foreground dark:group-focus:!text-accent-foreground" />
-                Thông Báo 
-              </DropdownMenuItem>
+              <ProfileModal>
+                <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
+                  <UserIcon className="text-muted-foreground dark:group-focus:!text-accent-foreground"/>
+                  Tài Khoản
+                </DropdownMenuItem>
+              </ProfileModal>
+              <NotificationsModal>
+                <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
+                  <Bell className="text-muted-foreground dark:group-focus:!text-accent-foreground" />
+                  Thông Báo 
+                </DropdownMenuItem>
+              </NotificationsModal>
               
             </DropdownMenuGroup>
             <DropdownMenuSeparator />
-            <DropdownMenuItem className="cursor-pointer text-red-600 focus:text-red-600 focus:bg-red-200 hover:bg-red-50" >
+            <DropdownMenuItem asChild className="cursor-pointer text-red-600 focus:text-red-600 focus:bg-red-200 hover:bg-red-50" >
               <Logout />
             </DropdownMenuItem>
           </DropdownMenuContent>

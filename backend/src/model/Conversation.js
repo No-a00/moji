@@ -35,6 +35,10 @@ const lastMessageSchema = new mongoose.Schema({
         type: String,
         default: null,
     },
+    hasImage: {
+        type: Boolean,
+        default: false,
+    },
     senderId: {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'User'
@@ -54,6 +58,14 @@ const conversationSchema = new mongoose.Schema({
         type: String,
         enum: ['direct', 'group'],
         required: true,
+    },
+    theme: {
+        type: String,
+        default: 'default',
+    },
+    wallpaper: {
+        type: String,
+        default: '',
     },
      participant: {
         type: [participantSchema],

@@ -36,7 +36,7 @@ export const signUp = async (req, res) => {
 
     } catch (error) {
         console.log('lỗi khi gọi signup',error);
-         res.status(500).josn({message:"lỗi hệ thống"});
+         res.status(500).json({message:"lỗi hệ thống"});
     }
 }
 
@@ -88,7 +88,7 @@ export const signIn = async(req,res)=>{
 
     } catch (error) {
          console.log('lỗi khi gọi signin',error);
-         res.status(500).josn({message:"lỗi hệ thống"});
+         res.status(500).json({message:"lỗi hệ thống"});
     }
 }
 
@@ -99,15 +99,19 @@ export const signOut = async(req,res) =>{
             if(token){
                 //xóa refresh token từ Session 
                 await Session.deleteOne({refreshToken:token});
-                 //xóa cookie 
-                res.clearCookie('refreshToken');
             }
+            //xóa cookie 
+            res.clearCookie('refreshToken', {
+                httpOnly: true,
+                secure: true,
+                sameSite: 'none',
+            });
             
             return res.sendStatus(204);
 
     } catch (error) {
          console.log('lỗi khi gọi signOut',error);
-         res.status(500).josn({message:"lỗi hệ thống"});
+         res.status(500).json({message:"lỗi hệ thống"});
     }
 }
 

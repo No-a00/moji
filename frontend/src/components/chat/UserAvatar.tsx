@@ -1,15 +1,15 @@
 
 import { cn } from '@/lib/utils'
-import { Avatar,AvatarFallback,AvatarImage } from '@radix-ui/react-avatar'
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 
 interface IUserAvatarProps{
-    type:'sidebar'|"chat"|"profile";
+    type?:'sidebar'|"chat"|"profile";
     name:string;
     avatarUrl?:string;
     className?:string;
 }
 
-const UserAvatar = ({type,name,avatarUrl,className}:IUserAvatarProps) => {
+const UserAvatar = ({type="sidebar",name,avatarUrl,className}:IUserAvatarProps) => {
     const bgColor = !avatarUrl ? "bg-blue-500":"";
     if(!name){
         name="Moij"

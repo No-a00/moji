@@ -2,6 +2,9 @@ export interface Participant {
   _id: string;
   displayName: string;
   avatarUrl?: string | null;
+  coverUrl?: string | null;
+  bio?: string | null;
+  email?: string | null;
   joinedAt: string;
 }
 
@@ -19,6 +22,7 @@ export interface Group {
 export interface LastMessage {
   _id: string;
   content: string;
+  hasImage?: boolean;
   createdAt: string;
   sender: {
     _id: string;
@@ -35,7 +39,9 @@ export interface Conversation {
   lastMessageAt: string;
   seenBy: SeenUser[];
   lastMessage: LastMessage | null;
-  unreadCounts: Record<string, number>; // key = userId, value = unread count
+  unreadCount: Record<string, number>; // key = userId, value = unread count
+  theme?: string;
+  wallpaper?: string;
   createdAt: string;
   updatedAt: string;
 }
@@ -50,6 +56,16 @@ export interface Message {
   senderId: string;
   content: string | null;
   imgUrl?: string | null;
+  isDeleted?: boolean;
+  isEdited?: boolean;
+  replyTo?: {
+    _id: string;
+    content: string | null;
+    imgUrl?: string | null;
+    senderId: string;
+    isDeleted?: boolean;
+  } | null;
+  reactions?: { emoji: string; userId: string; _id?: string }[];
   updatedAt?: string | null;
   createdAt: string;
   isOwn?: boolean;

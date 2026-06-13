@@ -46,7 +46,7 @@ export const createConversation = async (req,res)=>{
             return res.status(400).json({message:'Conversation type không hợp lệ'});
         }
         await conversation.populate([
-            {path:'participant.userId',select:'displayName avatarUrl'},
+            {path:'participant.userId',select:'displayName avatarUrl coverUrl bio email'},
             {
                 path:'seenBy',select:'displayName avatarUrl'
 
@@ -54,8 +54,29 @@ export const createConversation = async (req,res)=>{
             {
                 path:'lastMessage.senderId',select:'displayName avatarUrl'
             },
-        ])
-        return res.status(201).json({conversation});
+        ]);
+
+        const convoObj = conversation.toObject();
+        const participants = (convoObj.participant || []).map((p) => {
+            const userObj = p.userId || {}; 
+            return {
+                _id: userObj._id || userObj,    
+                displayName: userObj.displayName || "Lỗi tên", 
+                avatarUrl: userObj.avatarUrl ?? null,
+                coverUrl: userObj.coverUrl ?? null,
+                bio: userObj.bio ?? null,
+                email: userObj.email ?? null,
+                joinedAt: p.joineAt
+            };
+        });
+
+        const formattedConversation = {
+            ...convoObj,
+            unreadCount: convoObj.unreadCount || {},
+            participants,
+        };
+
+        return res.status(201).json({ conversation: formattedConversation });
     } catch (error) {
         console.error('lỗi khi tạo conversation',error);
         return res.status(500).json({message:'lỗi hệ thống'});
@@ -73,7 +94,7 @@ export const getConversation = async (req, res) => {
         .sort({ lastMessageAt: -1, updateAt: -1 })
         .populate({
             path: 'participant.userId',
-            select: 'displayName avatarUrl' // 🚨 ĐẢM BẢO BẢNG USER CÓ ĐÚNG TRƯỜNG NÀY
+            select: 'displayName avatarUrl coverUrl bio email' // 🚨 ĐẢM BẢO BẢNG USER CÓ ĐÚNG TRƯỜNG NÀY
         })
         .populate({
             path: 'lastMessage.senderId',
@@ -102,6 +123,9 @@ export const getConversation = async (req, res) => {
                     displayName: userObj.displayName || "Lỗi tên", 
                     
                     avatarUrl: userObj.avatarUrl ?? null,
+                    coverUrl: userObj.coverUrl ?? null,
+                    bio: userObj.bio ?? null,
+                    email: userObj.email ?? null,
                     joinedAt: p.joineAt
                 };
             });
@@ -135,7 +159,8 @@ export const getMessages = async (req,res)=>{
     
         let message = await Message.find(query)
         .sort({createdAt:-1})
-        .limit(Number(limit)+1);
+        .limit(Number(limit)+1)
+        .populate('replyTo', 'content imgUrl senderId isDeleted');
 
         console.log("2. Số lượng tin tìm được:", message.length);
         console.log("---------------------------------------");
@@ -156,5 +181,131 @@ export const getMessages = async (req,res)=>{
     } catch (error) {
         console.error('lỗi xảy ra khi lấy message',error);
         return res.status(500).json({message:'lỗi hệ thống'})
+    }
+}
+
+export const markAsSeen = async (req, res) => {
+    try {
+        const { id: conversationId } = req.params;
+        const userId = req.user._id;
+
+        const conversation = await Conversation.findById(conversationId);
+        if (!conversation) {
+            return res.status(404).json({ message: 'Không tìm thấy cuộc trò chuyện' });
+        }
+
+        const isParticipant = conversation.participant.some(p => p.userId.toString() === userId.toString());
+        if (!isParticipant) {
+            return res.status(403).json({ message: 'Bạn không thuộc cuộc trò chuyện này' });
+        }
+
+        // Thêm vào seenBy nếu chưa có
+        if (!conversation.seenBy.includes(userId)) {
+            conversation.seenBy.push(userId);
+        }
+
+        // Reset tin nhắn chưa đọc của người dùng hiện tại về 0
+        if (!conversation.unreadCount) {
+            conversation.unreadCount = new Map();
+        }
+        conversation.unreadCount.set(userId.toString(), 0);
+
+        await conversation.save();
+
+        // Phát sự kiện realtime thông báo là người dùng đã xem tin nhắn
+        try {
+            const { emitToUser } = await import("../libs/socket.js");
+            conversation.participant.forEach(p => {
+                if (p.userId.toString() !== userId.toString()) {
+                    emitToUser(p.userId, "conversationSeen", {
+                        conversationId,
+                        userId
+                    });
+                }
+            });
+        } catch (socketErr) {
+            console.error("Lỗi emit socket trong markAsSeen:", socketErr);
+        }
+
+        return res.status(200).json({ message: "Đã đánh dấu xem tin nhắn", conversationId });
+    } catch (error) {
+        console.error('Lỗi khi đánh dấu đã xem', error);
+        return res.status(500).json({ message: 'Lỗi hệ thống' });
+    }
+}
+
+export const updateTheme = async (req, res) => {
+    try {
+        const { id: conversationId } = req.params;
+        const { theme } = req.body;
+        const userId = req.user._id;
+
+        const conversation = await Conversation.findById(conversationId);
+        if (!conversation) {
+            return res.status(404).json({ message: 'Không tìm thấy cuộc trò chuyện' });
+        }
+
+        const isParticipant = conversation.participant.some(p => p.userId.toString() === userId.toString());
+        if (!isParticipant) {
+            return res.status(403).json({ message: 'Bạn không thuộc cuộc trò chuyện này' });
+        }
+
+        conversation.theme = theme;
+        await conversation.save();
+
+        try {
+            const { emitToUser } = await import("../libs/socket.js");
+            conversation.participant.forEach(p => {
+                emitToUser(p.userId, "themeUpdated", {
+                    conversationId,
+                    theme
+                });
+            });
+        } catch (socketErr) {
+            console.error("Lỗi emit socket trong updateTheme:", socketErr);
+        }
+
+        return res.status(200).json({ message: "Cập nhật chủ đề thành công", theme });
+    } catch (error) {
+        console.error('Lỗi khi cập nhật chủ đề:', error);
+        return res.status(500).json({ message: 'Lỗi hệ thống' });
+    }
+}
+
+export const updateWallpaper = async (req, res) => {
+    try {
+        const { id: conversationId } = req.params;
+        const { wallpaper } = req.body;
+        const userId = req.user._id;
+
+        const conversation = await Conversation.findById(conversationId);
+        if (!conversation) {
+            return res.status(404).json({ message: 'Không tìm thấy cuộc trò chuyện' });
+        }
+
+        const isParticipant = conversation.participant.some(p => p.userId.toString() === userId.toString());
+        if (!isParticipant) {
+            return res.status(403).json({ message: 'Bạn không thuộc cuộc trò chuyện này' });
+        }
+
+        conversation.wallpaper = wallpaper;
+        await conversation.save();
+
+        try {
+            const { emitToUser } = await import("../libs/socket.js");
+            conversation.participant.forEach(p => {
+                emitToUser(p.userId, "wallpaperUpdated", {
+                    conversationId,
+                    wallpaper
+                });
+            });
+        } catch (socketErr) {
+            console.error("Lỗi emit socket trong updateWallpaper:", socketErr);
+        }
+
+        return res.status(200).json({ message: "Cập nhật hình nền thành công", wallpaper });
+    } catch (error) {
+        console.error('Lỗi khi cập nhật hình nền:', error);
+        return res.status(500).json({ message: 'Lỗi hệ thống' });
     }
 }

@@ -21,11 +21,28 @@ const messageSchema = new mongoose.Schema({
     imgUrl: {
         type: String,
     },
-
-
-
+    isDeleted: {
+        type: Boolean,
+        default: false,
+    },
+    isEdited: {
+        type: Boolean,
+        default: false,
+    },
+    reactions: [{
+        emoji: String,
+        userId: {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: 'User'
+        }
+    }],
+    replyTo: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Message',
+        default: null
+    }
 }, {
-    timestamp: true,
+    timestamps: true,
 });
 messageSchema.index({conversationId:1,createdAt:-1});
 const Message = mongoose.model("Message",messageSchema);

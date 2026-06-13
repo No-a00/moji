@@ -4,7 +4,7 @@ import DirectMessageCard from './DirectMessageCard';
 const DirrectMessageList = () => {
   const {conversations} = useChatStore();
   
-  if(!conversations)return;
+  if(!conversations)return null;
 
   const directConversations = conversations.filter((convo)=>convo.type ==="direct")
   

@@ -13,9 +13,12 @@ const DirectMessageCard = ({convo}:{convo:Conversation}) => {
     if(!user) return null;
     const ortherUser = convo.participants.find((p)=>p._id!==user._id);
     if(!ortherUser)return null;
-    const unreadCount = convo?.unreadCounts?.[user._id];
-    const lastMessage = convo.lastMessage?.content??"";
-    
+    const unreadCount = convo?.unreadCount?.[user._id] || 0;
+    let lastMessageText = convo.lastMessage?.content ?? "";
+    if (!lastMessageText && convo.lastMessage?.hasImage) {
+        lastMessageText = "Đã gửi 1 hình ảnh";
+    }
+
     const handleSelectConversation = async (id:string)=>{
         setActiveConversation(id);
         if(!messages[id]){
@@ -45,7 +48,7 @@ const DirectMessageCard = ({convo}:{convo:Conversation}) => {
     }
     subtitle={
         <p className={cn("text-sm truncate",unreadCount>0?"font-medium text-foreground ":"text-muted-foreground")}>
-            {lastMessage}
+            {lastMessageText}
         </p>
     }
     />

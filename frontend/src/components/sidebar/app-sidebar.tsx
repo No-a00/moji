@@ -12,13 +12,14 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
 } from "@/components/ui/sidebar"
-import { Moon, Sun } from "lucide-react"
+import { Moon, Sun, Plus, UserPlus2 } from "lucide-react"
 import { Switch } from "../ui/switch"
 import CreateNewChat from "../chat/CreateNewChat"
 import NewGroupChatModal from "../chat/NewGroupChatModal"
 import GroupChatList from "../chat/GroupChatList"
 import AddFriendModal from "../chat/AddFriendModal"
 import DirrectMessageList from "../chat/DirrectMessageList"
+import FriendSidebarList from "../chat/FriendSidebarList"
 import { useThemeStore } from "@/stores/useThemeStore"
 import { useAuthStore } from "@/stores/useAuthStore"
 import { NavUser } from "./nav-user"
@@ -71,23 +72,37 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
           <SidebarGroupLabel className="uppercase">
             nhóm chat
           </SidebarGroupLabel>
-          <SidebarGroupAction title="Tạo Nhóm" className="cursor-pointer">
-            <NewGroupChatModal/>
-          </SidebarGroupAction>
+          <NewGroupChatModal>
+            <SidebarGroupAction title="Tạo Nhóm" className="cursor-pointer">
+              <Plus />
+            </SidebarGroupAction>
+          </NewGroupChatModal>
           <SidebarGroupContent>
             <GroupChatList/>
           </SidebarGroupContent>
         </SidebarGroup>
         {/*   dirrect message */}
-                <SidebarGroup>
+        <SidebarGroup>
+          <SidebarGroupLabel className="uppercase">
+            tin nhắn trực tiếp
+          </SidebarGroupLabel>
+          <SidebarGroupContent>
+            <DirrectMessageList/>
+          </SidebarGroupContent>
+        </SidebarGroup>
+        
+        {/* friends */}
+        <SidebarGroup>
           <SidebarGroupLabel className="uppercase">
             bạn bè
           </SidebarGroupLabel>
-          <SidebarGroupAction title="Kết Bạn" className="cursor-pointer">
-            <AddFriendModal/>
-          </SidebarGroupAction>
+          <AddFriendModal>
+            <SidebarGroupAction title="Kết Bạn" className="cursor-pointer">
+              <UserPlus2 />
+            </SidebarGroupAction>
+          </AddFriendModal>
           <SidebarGroupContent>
-            <DirrectMessageList/>
+            <FriendSidebarList/>
           </SidebarGroupContent>
         </SidebarGroup>
       </SidebarContent>

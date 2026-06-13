@@ -92,9 +92,7 @@ export const useAuthStore = create<AuthState>()(
 
         setAccessToken(accessToken);
 
-        if(!user){
-         await fetchMe();   
-        }
+        await fetchMe();   
     } catch (error) {
         console.error(error);
         toast.error('làm mới phiên không thành công.Vui lòng đăng nhập lại!');

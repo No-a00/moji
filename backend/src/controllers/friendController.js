@@ -73,14 +73,14 @@ export const acceptFriendRequest = async (req, res) => {
         });
         await FriendRequest.findByIdAndDelete(requestId);
 
-        const from = await User.findById(request.from).select('_id displayName avatarurl').lean();
+        const from = await User.findById(request.from).select('_id displayName avatarUrl').lean();
 
         return res.status(200).json({
             message: 'chấp nhận lời mời kết bạn thành công',
             newFriend: {
                 _id: from?._id,
                 displayName: from?.displayName,
-                avartarUrl: from?.avatarUrl,
+                avatarUrl: from?.avatarUrl,
             }
 
         },

@@ -1,17 +1,16 @@
 import { chatService } from "@/Service/chatService";
 import type { ChatState } from "@/types/store";
 import { create } from "zustand";
-import { persist } from "zustand/middleware";
 import { useAuthStore } from "./useAuthStore";
 
-export const useChatStore = create<ChatState>()(
-  persist(
-    (set, get) => ({
+export const useChatStore = create<ChatState>((set, get) => ({
       conversations: [],
       messages: {},
       activeConversationId: null,
       messageLoading: false,
       convoLoading: false,
+      replyingToMessage: null,
+      setReplyingToMessage: (message) => set({ replyingToMessage: message }),
       reset: () => {
         set({
           conversations: [],
@@ -92,8 +91,10 @@ export const useChatStore = create<ChatState>()(
             content,
             imgUrl,
             activeConversationId || undefined,
+            get().replyingToMessage?._id
           );
           set((state) => ({
+            replyingToMessage: null,
             conversations: state.conversations.map((c) =>
               c._id === activeConversationId ? { ...c, seenBy: [] } : c,
             ),
@@ -106,8 +107,9 @@ export const useChatStore = create<ChatState>()(
       sendGroupMessage: async (conversationId, content, imgUrl) => {
         const { activeConversationId } = get();
         try {
-          await chatService.sendGroupMessage(conversationId, content, imgUrl);
+          await chatService.sendGroupMessage(conversationId, content, imgUrl, get().replyingToMessage?._id);
           set((state) => ({
+            replyingToMessage: null,
             conversations: state.conversations.map((c) =>
               c._id === activeConversationId ? { ...c, seenBy: [] } : c,
             ),
@@ -116,10 +118,185 @@ export const useChatStore = create<ChatState>()(
           console.error("lỗi xảy ra khi gửi GroupMessage", error);
         }
       },
-    }),
-    {
-      name: "chat-storage",
-      partialize: (state) => ({ conversations: state.conversations }),
-    },
-  ),
-);
+      addMessage: (message) => {
+        const { user } = useAuthStore.getState();
+        const convoId = message.conversationId;
+        const processed = {
+          ...message,
+          isOwn: message.senderId === user?._id,
+        };
+
+        set((state) => {
+          const currentConvo = state.messages[convoId];
+          const currentItems = currentConvo?.items ?? [];
+          
+          if (currentItems.some((m) => m._id === message._id)) {
+            return state;
+          }
+
+          return {
+            messages: {
+              ...state.messages,
+              [convoId]: {
+                items: [...currentItems, processed],
+                hasMore: currentConvo?.hasMore ?? false,
+                nextCursor: currentConvo?.nextCursor ?? null,
+              },
+            },
+          };
+        });
+      },
+      updateConversationFromSocket: (data) => {
+        const { conversationId, lastMessage, unreadCount } = data;
+        set((state) => {
+          const convoIndex = state.conversations.findIndex((c) => c._id === conversationId);
+          if (convoIndex === -1) {
+            get().fetchConversations();
+            return state;
+          }
+
+          const updatedConversations = [...state.conversations];
+          const convo = { ...updatedConversations[convoIndex] };
+          
+          convo.lastMessage = {
+            _id: lastMessage._id,
+            content: lastMessage.content || "",
+            hasImage: lastMessage.hasImage || false,
+            createdAt: lastMessage.createdAt,
+            sender: {
+              _id: lastMessage.senderId,
+              displayName: convo.participants.find(p => p._id === lastMessage.senderId)?.displayName || "",
+            }
+          };
+          convo.lastMessageAt = lastMessage.createdAt;
+          convo.unreadCount = unreadCount || {};
+
+          updatedConversations.splice(convoIndex, 1);
+          updatedConversations.unshift(convo);
+
+          return { conversations: updatedConversations };
+        });
+      },
+      updateConversationTheme: (conversationId, theme) => {
+        set((state) => ({
+          conversations: state.conversations.map((c) =>
+            c._id === conversationId ? { ...c, theme } : c
+          ),
+        }));
+      },
+      changeTheme: async (conversationId, theme) => {
+        try {
+          await chatService.changeTheme(conversationId, theme);
+          get().updateConversationTheme(conversationId, theme);
+        } catch (error) {
+          console.error("lỗi xảy ra khi đổi theme", error);
+        }
+      },
+      updateConversationWallpaper: (conversationId, wallpaper) => {
+        set((state) => ({
+          conversations: state.conversations.map((c) =>
+            c._id === conversationId ? { ...c, wallpaper } : c
+          ),
+        }));
+      },
+      changeWallpaper: async (conversationId, wallpaper) => {
+        try {
+          await chatService.changeWallpaper(conversationId, wallpaper);
+          get().updateConversationWallpaper(conversationId, wallpaper);
+        } catch (error) {
+          console.error("lỗi xảy ra khi đổi hình nền", error);
+        }
+      },
+      markAsSeen: async (conversationId) => {
+        const { user } = useAuthStore.getState();
+        if (!user) return;
+        try {
+          await chatService.markAsSeen(conversationId);
+          
+          set((state) => ({
+            conversations: state.conversations.map((c) =>
+              c._id === conversationId
+                ? {
+                    ...c,
+                    unreadCount: {
+                      ...(c.unreadCount || {}),
+                      [user._id]: 0,
+                    },
+                    seenBy: c.seenBy.some((u) => u._id === user._id)
+                      ? c.seenBy
+                      : [...c.seenBy, { _id: user._id, displayName: user.displayName }],
+                  }
+                : c
+            ),
+          }));
+        } catch (error) {
+          console.error("Lỗi khi gọi markAsSeen API:", error);
+        }
+      },
+      createConversation: async (type, memberIds, name) => {
+        try {
+          const response = await chatService.createConversation(type, memberIds, name);
+          const convo = response.conversation;
+          if (!convo) return;
+          
+          set((state) => {
+            const exists = state.conversations.some((c) => c._id === convo._id);
+            const nextConvos = exists
+              ? state.conversations
+              : [convo, ...state.conversations];
+            
+            return {
+              conversations: nextConvos,
+              activeConversationId: convo._id,
+            };
+          });
+
+          get().fetchMessages(convo._id);
+          return convo;
+        } catch (error) {
+          console.error("Lỗi khi tạo cuộc trò chuyện:", error);
+        }
+      },
+      unsendMessage: async (messageId) => {
+        try {
+          await chatService.unsendMessage(messageId);
+        } catch (error) {
+          console.error("Lỗi khi thu hồi tin nhắn", error);
+        }
+      },
+      editMessage: async (messageId, content) => {
+        try {
+          await chatService.editMessage(messageId, content);
+        } catch (error) {
+          console.error("Lỗi khi sửa tin nhắn", error);
+        }
+      },
+      reactToMessage: async (messageId, emoji) => {
+        try {
+          await chatService.reactToMessage(messageId, emoji);
+        } catch (error) {
+          console.error("Lỗi khi thả cảm xúc", error);
+        }
+      },
+      updateMessage: (message) => {
+        const convoId = message.conversationId;
+        set((state) => {
+          const currentConvo = state.messages[convoId];
+          if (!currentConvo) return state;
+
+          const updatedItems = currentConvo.items.map((m) =>
+            m._id === message._id ? { ...m, ...message } : m
+          );
+
+          return {
+            messages: {
+              ...state.messages,
+              [convoId]: {
+                ...currentConvo,
+                items: updatedItems,
+              },
+            },
+          };
+        });
+      },
+}));

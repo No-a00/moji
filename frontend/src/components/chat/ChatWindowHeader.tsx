@@ -6,6 +6,7 @@ import { Separator } from "@radix-ui/react-separator";
 import UserAvatar from "./UserAvatar";
 import StatusBadge from "./StatusBadge";
 import GroupChatAvatar from "./GroupChatAvatar";
+import ConversationDetailsSidebar from "./ConversationDetailsSidebar";
 
 const ChatWindowHeader = ({ chat }: { chat?: Conversation }) => {
   const { conversations, activeConversationId } = useChatStore();
@@ -23,11 +24,11 @@ const ChatWindowHeader = ({ chat }: { chat?: Conversation }) => {
   if (chat.type === "direct") {
     const otherUsers = chat.participants.filter((p) => p._id !== user?._id);
     otherUser = otherUsers.length > 0 ? otherUsers[0] : null;
-    if (!user || !otherUser) return;
+    if (!user || !otherUser) return null;
   }
   return (
-    <header className="sticky top-0 z-10 px-4 py-2 items-center bg-background ">
-      <div className="flex items-center gap-2 w-full">
+    <header className="sticky top-0 z-10 px-4 py-2 flex items-center bg-background">
+      <div className="flex items-center gap-2 flex-1">
         <SidebarTrigger className="-ml-1 text-foreground" />
         <Separator
           data-orientation="vertical"
@@ -35,7 +36,7 @@ const ChatWindowHeader = ({ chat }: { chat?: Conversation }) => {
           role="separator"
           className="mr-2 data-[orientation=vertical]:h-4 z-10 w-[1px] bg-gray-200"
         />
-        <div className="p-2 w-full flex items-center gap-3">
+        <div className="p-2 flex-1 flex items-center gap-3">
           {/* avatar */}
           <div className="relative">
             {chat.type === "direct" ? (
@@ -56,6 +57,8 @@ const ChatWindowHeader = ({ chat }: { chat?: Conversation }) => {
           </h2>
         </div>
       </div>
+      {/* Nút xem chi tiết cuộc trò chuyện (thay cho GroupMembersModal) */}
+      <ConversationDetailsSidebar chat={chat} />
     </header>
   );
 };

@@ -4,7 +4,7 @@ import { Smile } from 'lucide-react';
 import Picker from '@emoji-mart/react'
 import data from "@emoji-mart/data"
 interface EmojiPinkerProps{
-    oncChange:(value:string)=>void;
+    onChange:(value:string)=>void;
 }
 
 const EmoijPicker = ({onChange}:EmojiPinkerProps) => {

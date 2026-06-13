@@ -21,7 +21,7 @@ const sessionSchema = new mongoose.Schema(
 
 
     }, {
-    timeseries: true,
+    timestamps: true,
 }
 
 );

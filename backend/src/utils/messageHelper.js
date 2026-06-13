@@ -6,6 +6,7 @@ export const updateConversationAfterCreateMessage = (conversation, message, send
             lastMessage: {
                 _id: message._id, // Lưu ý: message._id thường có dấu gạch dưới
                 content: message.content,
+                hasImage: !!message.imgUrl,
                 senderId: senderId,
                 createdAt: message.createdAt,
             }
@@ -18,16 +19,16 @@ export const updateConversationAfterCreateMessage = (conversation, message, send
                 const memberId = p.userId.toString();
                 const isSender = memberId === senderId.toString();
                 
-                // Đảm bảo unreadCounts là Map trước khi get/set
-                if (!conversation.unreadCounts) {
-                    conversation.unreadCounts = new Map();
+                // Đảm bảo unreadCount là Map trước khi get/set
+                if (!conversation.unreadCount) {
+                    conversation.unreadCount = new Map();
                 }
 
-                const prevCount = conversation.unreadCounts.get(memberId) || 0;
+                const prevCount = conversation.unreadCount.get(memberId) || 0;
                 
                 // Nếu là người gửi -> reset về 0
                 // Nếu là người nhận -> tăng lên 1
-                conversation.unreadCounts.set(memberId, isSender ? 0 : prevCount + 1);
+                conversation.unreadCount.set(memberId, isSender ? 0 : prevCount + 1);
             });
         }
 

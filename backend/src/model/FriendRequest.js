@@ -19,7 +19,7 @@ const friendRequestSchema = new mongoose.Schema({
     timestamps:true,
 });
 friendRequestSchema.index({from:1,to:1},{unique:true});
-friendRequestSchema.index({form:1});
+friendRequestSchema.index({from:1});
 friendRequestSchema.index({to:1});
 
 const FriendRequest = mongoose.model('FriendRequest',friendRequestSchema);

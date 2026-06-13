@@ -18,20 +18,33 @@ const ChatWindowLayout = () => {
   if(!selectedConvo){
     return <ChatWelcomeScreen/>
   }
-
-  if(loading){
-    return <ChatWindowSkeleton/>
-  }
  
 
   return (
   <SidebarInset className="flex flex-col h-full flex-1 overflow-hidden rounded-sm shadow-md">
     {/* header */}
-    <ChatWindowHeader chat = {selectedConvo}/>
-    {/* body */}
-    <div className="flex-1 overflow-y-auto bg-primary-foreground">
-      <ChatWindowBody/>
+    <ChatWindowHeader chat={selectedConvo}/>
+    
+    {/* body with wallpaper */}
+    <div className="flex-1 relative overflow-hidden bg-primary-foreground">
+      {selectedConvo.wallpaper && (
+        <div 
+          className="absolute inset-0 z-0 pointer-events-none"
+          style={{
+            backgroundImage: `url(${selectedConvo.wallpaper})`,
+            backgroundSize: 'cover',
+            backgroundPosition: 'center',
+            backgroundRepeat: 'no-repeat'
+          }}
+        >
+        </div>
+      )}
+      
+      <div className="relative z-10 h-full">
+        <ChatWindowBody/>
+      </div>
     </div>
+    
     {/* footer */}
     <ChatWindowFooter seletedConvo={selectedConvo}/>
   </SidebarInset>);

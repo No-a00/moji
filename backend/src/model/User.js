@@ -30,6 +30,9 @@ const userSchema   = new mongoose.Schema(
         avatarUrl:{
             type:String// link CDN để hiện thị hình 
         },
+        coverUrl:{
+            type:String// Ảnh nền đại diện
+        },
         avatarId:{
             type:String,//Cloudinary public_id để xóa hình  
         },

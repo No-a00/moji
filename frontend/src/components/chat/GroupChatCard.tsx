@@ -11,7 +11,7 @@ const GroupChatCard = ({convo}:{convo:Conversation}) => {
      const {activeConversationId,setActiveConversation,messages,fetchMessages} = useChatStore();
       if(!user) return null;
       
-      const unreadCount = convo?.unreadCounts?.[user._id];
+      const unreadCount = convo?.unreadCount?.[user._id] || 0;
       const name = convo.group?.name??"";
       
       const handleSelectConversation = async (id:string)=>{

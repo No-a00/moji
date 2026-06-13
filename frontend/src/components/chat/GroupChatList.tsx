@@ -1,10 +1,9 @@
-
 import { useChatStore } from '@/stores/useChatStore'
 import GroupChatCard from './GroupChatCard';
 const GroupChatList = () => {
    const {conversations} = useChatStore();
    
-   if(!conversations)return;
+   if(!conversations)return null;
    const groupchats = conversations.filter((convo)=>convo.type==="group");
    
 

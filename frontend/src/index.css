@@ -229,11 +229,11 @@
 
   /* Chat bubble variants */
   .chat-bubble-sent {
-    @apply bg-primary/80! text-[hsl(var(--chat-bubble-sent-foreground))]! shadow-[var(--shadow-bubble)];
+    @apply bg-gradient-to-br from-primary to-fuchsia-500 text-white shadow-[var(--shadow-bubble)];
   }
 
   .chat-bubble-received {
-    @apply bg-[hsl(var(--chat-bubble-received))] text-[hsl(var(--chat-bubble-received-foreground))] border border-border/50;
+    @apply bg-muted text-foreground border border-border/50;
   }
 
   /* Status indicators */
