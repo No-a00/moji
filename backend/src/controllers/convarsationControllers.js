@@ -104,6 +104,13 @@ export const getConversation = async (req, res) => {
             path: 'seenBy',
             select: 'displayName avatarUrl'
         })
+        .populate({
+            path: 'pinnedMessages',
+            select: 'content imgUrl senderId createdAt isDeleted replyTo',
+            populate: [
+                { path: 'senderId', select: 'displayName avatarUrl' }
+            ]
+        })
         .lean(); // <--- VŨ KHÍ BÍ MẬT NẰM Ở ĐÂY
 
         // 2. In ra console để xem Mongoose có lấy được tên không
@@ -306,6 +313,73 @@ export const updateWallpaper = async (req, res) => {
         return res.status(200).json({ message: "Cập nhật hình nền thành công", wallpaper });
     } catch (error) {
         console.error('Lỗi khi cập nhật hình nền:', error);
+        return res.status(500).json({ message: 'Lỗi hệ thống' });
+    }
+}
+
+export const togglePinMessage = async (req, res) => {
+    try {
+        const { id: conversationId } = req.params;
+        const { messageId } = req.body;
+        const userId = req.user._id;
+
+        const conversation = await Conversation.findById(conversationId);
+        if (!conversation) {
+            return res.status(404).json({ message: 'Không tìm thấy cuộc trò chuyện' });
+        }
+
+        const isParticipant = conversation.participant.some(p => p.userId.toString() === userId.toString());
+        if (!isParticipant) {
+            return res.status(403).json({ message: 'Bạn không thuộc cuộc trò chuyện này' });
+        }
+
+        const pinIndex = conversation.pinnedMessages.findIndex(id => id.toString() === messageId.toString());
+        let action = '';
+
+        if (pinIndex > -1) {
+            // Đã ghim -> Bỏ ghim
+            conversation.pinnedMessages.splice(pinIndex, 1);
+            action = 'unpin';
+        } else {
+            // Chưa ghim -> Ghim (Tối đa 3)
+            if (conversation.pinnedMessages.length >= 3) {
+                // Xóa tin ghim cũ nhất (đầu mảng)
+                conversation.pinnedMessages.shift();
+            }
+            conversation.pinnedMessages.push(messageId);
+            action = 'pin';
+        }
+
+        await conversation.save();
+
+        // Lấy lại danh sách pinnedMessages đã populate để trả về cho Client
+        const populatedConvo = await Conversation.findById(conversationId).populate({
+            path: 'pinnedMessages',
+            select: 'content imgUrl senderId createdAt isDeleted replyTo',
+            populate: [
+                { path: 'senderId', select: 'displayName avatarUrl' }
+            ]
+        });
+
+        // Phát sự kiện realtime
+        try {
+            const { emitToUser } = await import("../libs/socket.js");
+            conversation.participant.forEach(p => {
+                emitToUser(p.userId, "pinnedMessagesUpdated", {
+                    conversationId,
+                    pinnedMessages: populatedConvo.pinnedMessages
+                });
+            });
+        } catch (socketErr) {
+            console.error("Lỗi emit socket trong togglePinMessage:", socketErr);
+        }
+
+        return res.status(200).json({ 
+            message: action === 'pin' ? "Đã ghim tin nhắn" : "Đã bỏ ghim",
+            pinnedMessages: populatedConvo.pinnedMessages 
+        });
+    } catch (error) {
+        console.error('Lỗi khi ghim/bỏ ghim tin nhắn:', error);
         return res.status(500).json({ message: 'Lỗi hệ thống' });
     }
 }

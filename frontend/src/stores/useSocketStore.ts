@@ -92,6 +92,18 @@ export const useSocketStore = create<SocketState>((set, get) => ({
       chatStore.updateConversationWallpaper(conversationId, wallpaper);
     });
 
+    // Lắng nghe sự kiện ghim tin nhắn
+    newSocket.on("pinnedMessagesUpdated", ({ conversationId, pinnedMessages }) => {
+      const chatStore = useChatStore.getState();
+      chatStore.updateConversationPinnedMessages(conversationId, pinnedMessages);
+    });
+
+    // Lắng nghe sự kiện người dùng đã xem tin nhắn
+    newSocket.on("conversationSeen", ({ conversationId, userId }) => {
+      const chatStore = useChatStore.getState();
+      chatStore.addUserToSeenBy(conversationId, userId);
+    });
+
     // Lắng nghe sự kiện đối phương đang gõ chữ
     newSocket.on("userTyping", ({ conversationId, senderId }) => {
       set((state) => {

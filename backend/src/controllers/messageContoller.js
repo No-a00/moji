@@ -53,7 +53,8 @@ export const sendDicrectMessage = async (req,res)=>{
                 emitToUser(p.userId, "conversationUpdated", {
                     conversationId: conversation._id,
                     lastMessage: message,
-                    unreadCount: Object.fromEntries(conversation.unreadCount || new Map())
+                    unreadCount: Object.fromEntries(conversation.unreadCount || new Map()),
+                    seenBy: conversation.seenBy
                 });
             });
         } catch (socketErr) {
@@ -106,7 +107,8 @@ export const sendGroupMessage = async (req,res)=>{
                 emitToUser(p.userId, "conversationUpdated", {
                     conversationId: conversation._id,
                     lastMessage: message,
-                    unreadCount: Object.fromEntries(conversation.unreadCount || new Map())
+                    unreadCount: Object.fromEntries(conversation.unreadCount || new Map()),
+                    seenBy: conversation.seenBy
                 });
             });
         } catch (socketErr) {

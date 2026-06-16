@@ -88,6 +88,12 @@ const conversationSchema = new mongoose.Schema({
         type: lastMessageSchema,
         default: {} 
     },
+    pinnedMessages: [
+        {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: 'Message'
+        }
+    ],
     unreadCount: {
         type: Map,
         of: Number,

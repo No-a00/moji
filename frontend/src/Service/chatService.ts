@@ -49,6 +49,10 @@ export const chatService = {
         const res = await api.put(`/conversations/${conversationId}/wallpaper`, { wallpaper });
         return res.data;
     },
+    async togglePinMessage(conversationId: string, messageId: string) {
+        const res = await api.post(`/conversations/${conversationId}/pin`, { messageId });
+        return res.data;
+    },
     async createConversation(type: "direct" | "group", memberIds: string[], name?: string) {
         const res = await api.post("/conversations", { type, memberIds, name });
         return res.data;

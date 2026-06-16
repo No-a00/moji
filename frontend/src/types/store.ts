@@ -37,8 +37,10 @@ export interface ChatState{
   messageLoading:boolean;
   convoLoading:boolean;
   replyingToMessage:Message | null;
+  targetScrollMessageId: string | null;
   reset:()=>void;
   setActiveConversation:(id:string|null)=>void;
+  setTargetScrollMessageId: (messageId: string | null) => void;
   setReplyingToMessage:(message:Message|null)=>void;
   fetchConversations:()=>Promise<void>;
   fetchMessages:(conversationId?:string)=>Promise<void>;
@@ -59,12 +61,16 @@ export interface ChatState{
     conversationId:string;
     lastMessage:Message;
     unreadCount:Record<string, number>;
+    seenBy?:any[];
   })=>void;
   markAsSeen:(conversationId:string)=>Promise<void>;
   changeTheme:(conversationId:string, theme:string)=>Promise<void>;
   updateConversationTheme:(conversationId:string, theme:string)=>void;
   changeWallpaper:(conversationId:string, wallpaper:string)=>Promise<void>;
   updateConversationWallpaper:(conversationId:string, wallpaper:string)=>void;
+  togglePinMessage:(conversationId:string, messageId:string)=>Promise<void>;
+  updateConversationPinnedMessages:(conversationId:string, pinnedMessages:Message[])=>void;
+  addUserToSeenBy:(conversationId:string, userId:string)=>void;
   createConversation:(
     type: "direct" | "group",
     memberIds: string[],

@@ -5,6 +5,7 @@ import { SidebarInset } from "../ui/sidebar";
 import ChatWindowHeader from "./ChatWindowHeader";
 import ChatWindowBody from "./ChatWindowBody";
 import ChatWindowFooter from "./ChatWindowFooter";
+import { PinnedMessagesBanner } from "./PinnedMessagesBanner";
 
 const ChatWindowLayout = () => {
   const {
@@ -25,6 +26,9 @@ const ChatWindowLayout = () => {
     {/* header */}
     <ChatWindowHeader chat={selectedConvo}/>
     
+    {/* Pinned Messages Banner */}
+    <PinnedMessagesBanner />
+
     {/* body with wallpaper */}
     <div className="flex-1 relative overflow-hidden bg-primary-foreground">
       {selectedConvo.wallpaper && (

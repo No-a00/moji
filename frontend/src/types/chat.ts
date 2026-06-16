@@ -42,6 +42,8 @@ export interface Conversation {
   unreadCount: Record<string, number>; // key = userId, value = unread count
   theme?: string;
   wallpaper?: string;
+  pinnedMessages?: Message[];
+  seenBy?: Participant[];
   createdAt: string;
   updatedAt: string;
 }

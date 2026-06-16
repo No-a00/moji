@@ -5,7 +5,7 @@ import UserAvatar from "./UserAvatar";
 import { Card } from "../ui/card";
 import { Dialog, DialogContent, DialogTrigger } from "../ui/dialog";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "../ui/dropdown-menu";
-import { MoreHorizontal, Smile, Pencil, Trash, Reply } from "lucide-react";
+import { Check, Edit2, MoreHorizontal, Pencil, Reply, Smile, Trash, Pin } from 'lucide-react';
 import { useChatStore } from "@/stores/useChatStore";
 import { getThemeGradient } from "@/lib/themes";
 
@@ -22,10 +22,23 @@ interface MessageItemProp{
 const EMOJI_OPTIONS = ["👍", "❤️", "😂", "😮", "😢", "😡"];
 
 const MessageItem = ({message,index,messages,selectedconvo,lastMessageStatus}:MessageItemProp) => {
-  const { unsendMessage, editMessage, reactToMessage, setReplyingToMessage } = useChatStore();
+  const { unsendMessage, editMessage, reactToMessage, setReplyingToMessage, togglePinMessage, targetScrollMessageId, setTargetScrollMessageId } = useChatStore();
   const { user } = useAuthStore();
   const [showMobileMenu, setShowMobileMenu] = useState(false);
+  const [isHighlighted, setIsHighlighted] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
+
+  // Xử lý hiệu ứng highlight khi scroll tới
+  useEffect(() => {
+    if (targetScrollMessageId === message._id) {
+        setIsHighlighted(true);
+        const timer = setTimeout(() => {
+            setIsHighlighted(false);
+            setTargetScrollMessageId(null); // Reset lại state
+        }, 2000); // Highlight trong 2 giây
+        return () => clearTimeout(timer);
+    }
+  }, [targetScrollMessageId, message._id, setTargetScrollMessageId]);
   
   const prev = messages[index-1];
   const next = messages[index+1];
@@ -104,7 +117,14 @@ const MessageItem = ({message,index,messages,selectedconvo,lastMessageStatus}:Me
   }
 
     return (
-    <div className={cn("flex gap-2 message-bounce group",message.isOwn?"justify-end":"justify-start", isPrevSameSender ? "mt-1" : "mt-4")}>
+    <div 
+        id={"message-" + message._id} 
+        className={cn("flex gap-2 message-bounce group transition-all duration-500", 
+            message.isOwn ? "justify-end" : "justify-start", 
+            isPrevSameSender ? "mt-1" : "mt-4",
+            isHighlighted && "bg-primary/20 dark:bg-primary/30 p-2 rounded-xl"
+        )}
+    >
         
         {/* avartar */}
         {!message.isOwn&&(
@@ -179,6 +199,17 @@ const MessageItem = ({message,index,messages,selectedconvo,lastMessageStatus}:Me
                                 className="gap-2 cursor-pointer"
                             >
                                 <Reply className="w-4 h-4" /> Trả lời
+                            </DropdownMenuItem>
+                            
+                            <DropdownMenuItem 
+                                onClick={() => {
+                                    togglePinMessage(selectedconvo._id, message._id);
+                                    setShowMobileMenu(false);
+                                }} 
+                                className="gap-2 cursor-pointer"
+                            >
+                                <Pin className="w-4 h-4" /> 
+                                {selectedconvo.pinnedMessages?.some(m => m?._id === message._id) ? "Bỏ ghim" : "Ghim tin nhắn"}
                             </DropdownMenuItem>
                             
                             {message.isOwn && (
@@ -279,13 +310,45 @@ const MessageItem = ({message,index,messages,selectedconvo,lastMessageStatus}:Me
             )}
         </div>
 
-        {/* seen/dlivered */}
-        {message.isOwn&&message._id===selectedconvo.lastMessage?._id&&(
-            <span 
-                className={cn("text-[11px] px-1 ml-auto mt-0.5",lastMessageStatus==="seen"?"text-primary":"text-muted-foreground")}        
-                >
-                {lastMessageStatus === "seen" ? "Đã xem" : "Đã gửi"}
-            </span>
+        {/* seen/dlivered / avatars */}
+        {message.isOwn && message._id === selectedconvo.lastMessage?._id && (
+            <div className="flex justify-end mt-0.5 pr-1">
+                {selectedconvo.type === 'direct' ? (
+                    <span className={cn("text-[11px] px-1", lastMessageStatus === "seen" ? "text-primary" : "text-muted-foreground")}>
+                        {lastMessageStatus === "seen" ? "Đã xem" : "Đã gửi"}
+                    </span>
+                ) : (
+                    <div className="flex items-center -space-x-1">
+                        {selectedconvo.seenBy && selectedconvo.seenBy
+                            .filter(p => p._id !== user?._id) // Bỏ qua người gửi
+                            .slice(0, 5) // Tối đa 5 avatar
+                            .map((p, idx) => {
+                                // Nếu ID trùng với ID của người tham gia, lấy avatar của người đó
+                                const participant = selectedconvo.participants?.find(part => part._id === p._id);
+                                return (
+                                    <div key={p._id} className="w-4 h-4 rounded-full overflow-hidden border border-background z-10" style={{ zIndex: 10 - idx }}>
+                                        {participant?.avatarUrl ? (
+                                            <img src={participant.avatarUrl} alt={participant.displayName} className="w-full h-full object-cover" />
+                                        ) : (
+                                            <div className="w-full h-full bg-primary/20 flex items-center justify-center text-[8px] font-bold text-primary">
+                                                {participant?.displayName?.[0]?.toUpperCase() || "?"}
+                                            </div>
+                                        )}
+                                    </div>
+                                );
+                            })
+                        }
+                        {selectedconvo.seenBy && selectedconvo.seenBy.filter(p => p._id !== user?._id).length > 5 && (
+                            <div className="w-4 h-4 rounded-full bg-muted flex items-center justify-center text-[8px] border border-background z-0">
+                                +{selectedconvo.seenBy.filter(p => p._id !== user?._id).length - 5}
+                            </div>
+                        )}
+                        {(!selectedconvo.seenBy || selectedconvo.seenBy.filter(p => p._id !== user?._id).length === 0) && (
+                            <span className="text-[11px] px-1 text-muted-foreground">Đã gửi</span>
+                        )}
+                    </div>
+                )}
+            </div>
         )}
         </div>
         

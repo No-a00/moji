@@ -10,6 +10,8 @@ export const useChatStore = create<ChatState>((set, get) => ({
       messageLoading: false,
       convoLoading: false,
       replyingToMessage: null,
+      targetScrollMessageId: null,
+      setTargetScrollMessageId: (id) => set({ targetScrollMessageId: id }),
       setReplyingToMessage: (message) => set({ replyingToMessage: message }),
       reset: () => {
         set({
@@ -170,6 +172,9 @@ export const useChatStore = create<ChatState>((set, get) => ({
           };
           convo.lastMessageAt = lastMessage.createdAt;
           convo.unreadCount = unreadCount || {};
+          if (data.seenBy !== undefined) {
+            convo.seenBy = data.seenBy;
+          }
 
           updatedConversations.splice(convoIndex, 1);
           updatedConversations.unshift(convo);
@@ -205,6 +210,37 @@ export const useChatStore = create<ChatState>((set, get) => ({
           get().updateConversationWallpaper(conversationId, wallpaper);
         } catch (error) {
           console.error("lỗi xảy ra khi đổi hình nền", error);
+        }
+      },
+      updateConversationPinnedMessages: (conversationId, pinnedMessages) => {
+        set((state) => ({
+          conversations: state.conversations.map((c) =>
+            c._id === conversationId ? { ...c, pinnedMessages } : c
+          ),
+        }));
+      },
+      addUserToSeenBy: (conversationId, userId) => {
+        set((state) => ({
+          conversations: state.conversations.map((c) => {
+            if (c._id === conversationId) {
+              const currentSeenBy = c.seenBy || [];
+              const isAlreadySeen = currentSeenBy.some((p: any) => p._id === userId || p === userId);
+              if (!isAlreadySeen) {
+                // Chúng ta chỉ có userId, thực tế seenBy cần full user object hoặc ID.
+                // Để đơn giản UI, map _id: userId là đủ nếu chỉ cần ID để tránh trùng.
+                return { ...c, seenBy: [...currentSeenBy, { _id: userId } as any] };
+              }
+            }
+            return c;
+          }),
+        }));
+      },
+      togglePinMessage: async (conversationId, messageId) => {
+        try {
+          const res = await chatService.togglePinMessage(conversationId, messageId);
+          get().updateConversationPinnedMessages(conversationId, res.pinnedMessages);
+        } catch (error) {
+          console.error("lỗi xảy ra khi ghim tin nhắn", error);
         }
       },
       markAsSeen: async (conversationId) => {
