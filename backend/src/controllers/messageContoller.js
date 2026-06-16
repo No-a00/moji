@@ -1,36 +1,63 @@
 import Message from '../model/Message.js'
 import Conversation from '../model/Conversation.js'
+import User from '../model/User.js'
 import {updateConversationAfterCreateMessage} from '../utils/messageHelper.js'
 
 export const sendDicrectMessage = async (req,res)=>{
     try {
-       const  {recipientId,content,imgUrl,conversationId,replyTo} = req.body;
+       const  {recipientId,content,imgUrl,fileUrl,fileName,fileSize,fileType,audioUrl,conversationId,replyTo} = req.body;
        const senderId = req.user._id;
        let conversation;
-        if(!content && !imgUrl){
+        if(!content && !imgUrl && !fileUrl && !audioUrl){
             return res.status(400).json({message:'thiếu nội dung'});
         }
+
+        const senderUser = await User.findById(senderId);
+        const recipientUser = await User.findById(recipientId);
+
+        if (!senderUser || !recipientUser) {
+            return res.status(404).json({ message: 'Người dùng không tồn tại' });
+        }
+
+        if (senderUser.blockedUsers.includes(recipientId) || recipientUser.blockedUsers.includes(senderId)) {
+            return res.status(403).json({ message: 'Bạn không thể nhắn tin cho người này do đã bị chặn hoặc bạn đã chặn họ' });
+        }
+
         if(conversationId){
             conversation = await Conversation.findById(conversationId); 
             
         }
         if(!conversation){
-            conversation = await Conversation.create({
-                type:'direct',
-                participant:[
-                    {userId:senderId,joineAt: new Date()},
-                    {userId:recipientId,joineAt: new Date()}
-                ],   
-            
-                lastMessageAt: new Date(),
-                unreadCount:new Map()
-            })
+            // Tìm cuộc trò chuyện direct đã tồn tại giữa 2 người
+            conversation = await Conversation.findOne({
+                type: 'direct',
+                'participant.userId': { $all: [senderId, recipientId] }
+            });
+
+            // Nếu vẫn không có thì mới tạo mới
+            if (!conversation) {
+                conversation = await Conversation.create({
+                    type:'direct',
+                    participant:[
+                        {userId:senderId,joineAt: new Date()},
+                        {userId:recipientId,joineAt: new Date()}
+                    ],   
+                
+                    lastMessageAt: new Date(),
+                    unreadCount:new Map()
+                });
+            }
         }
         const messagePayload = {
             conversationId:conversation._id,
             senderId,
             content,
-            imgUrl
+            imgUrl,
+            fileUrl,
+            fileName,
+            fileSize,
+            fileType,
+            audioUrl
         };
         if (replyTo) {
             messagePayload.replyTo = replyTo;
@@ -72,10 +99,10 @@ export const sendDicrectMessage = async (req,res)=>{
 
 export const sendGroupMessage = async (req,res)=>{
     try {
-        const {conversationId,content,imgUrl,replyTo} = req.body;
+        const {conversationId,content,imgUrl,fileUrl,fileName,fileSize,fileType,audioUrl,replyTo} = req.body;
         const senderId = req.user._id;
         const conversation = req.conversation;
-        if(!content && !imgUrl){
+        if(!content && !imgUrl && !fileUrl && !audioUrl){
             return res.status(400).json({message:'thiếu nội dung'});
 
         }
@@ -84,7 +111,12 @@ export const sendGroupMessage = async (req,res)=>{
             conversationId,
             senderId,
             content,
-            imgUrl
+            imgUrl,
+            fileUrl,
+            fileName,
+            fileSize,
+            fileType,
+            audioUrl
         };
         if (replyTo) {
             messagePayload.replyTo = replyTo;

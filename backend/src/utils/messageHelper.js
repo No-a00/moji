@@ -9,7 +9,8 @@ export const updateConversationAfterCreateMessage = (conversation, message, send
                 hasImage: !!message.imgUrl,
                 senderId: senderId,
                 createdAt: message.createdAt,
-            }
+            },
+            archivedBy: [] // Tự động mở lưu trữ cho mọi người khi có tin nhắn mới
         });
 
         // --- BƯỚC 3: TÍNH SỐ TIN NHẮN CHƯA ĐỌC ---

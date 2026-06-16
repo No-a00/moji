@@ -29,5 +29,25 @@ export const authService = {
   refresh: async () =>{
     const res = await api.post("auth/refresh", { withCredentials: true });
     return res.data.accessToken;
+  },
+  getUserProfile: async (id: string) => {
+    const res = await api.get(`users/profile/${id}`);
+    return res.data.user;
+  },
+  blockUser: async (id: string) => {
+    const res = await api.put(`users/block/${id}`);
+    return res.data;
+  },
+  verifyEmail: async (token: string) => {
+    const res = await api.post("auth/verify-email", { token });
+    return res.data;
+  },
+  forgotPassword: async (email: string) => {
+    const res = await api.post("auth/forgot-password", { email });
+    return res.data;
+  },
+  resetPassword: async (token: string, password: string) => {
+    const res = await api.post("auth/reset-password", { token, password });
+    return res.data;
   }
 };

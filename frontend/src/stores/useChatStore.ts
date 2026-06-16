@@ -85,14 +85,13 @@ export const useChatStore = create<ChatState>((set, get) => ({
           set({ messageLoading: false });
         }
       },
-      sendDirectMessage: async (recipientId, content, imgUrl) => {
+      sendDirectMessage: async (recipientId, content, options) => {
         try {
           const { activeConversationId } = get();
           await chatService.sendDirectMessage(
             recipientId,
             content,
-            imgUrl,
-            activeConversationId || undefined,
+            { ...options, conversationId: activeConversationId || undefined },
             get().replyingToMessage?._id
           );
           set((state) => ({
@@ -106,10 +105,10 @@ export const useChatStore = create<ChatState>((set, get) => ({
           
         }
       },
-      sendGroupMessage: async (conversationId, content, imgUrl) => {
+      sendGroupMessage: async (conversationId, content, options) => {
         const { activeConversationId } = get();
         try {
-          await chatService.sendGroupMessage(conversationId, content, imgUrl, get().replyingToMessage?._id);
+          await chatService.sendGroupMessage(conversationId, content, options, get().replyingToMessage?._id);
           set((state) => ({
             replyingToMessage: null,
             conversations: state.conversations.map((c) =>
@@ -195,6 +194,93 @@ export const useChatStore = create<ChatState>((set, get) => ({
           get().updateConversationTheme(conversationId, theme);
         } catch (error) {
           console.error("lỗi xảy ra khi đổi theme", error);
+        }
+      },
+      markAsUnread: async (conversationId) => {
+        try {
+          await chatService.markAsUnread(conversationId);
+          const { user } = useAuthStore.getState();
+          if (user) {
+            set((state) => ({
+              conversations: state.conversations.map((c) =>
+                c._id === conversationId ? { ...c, unreadCount: { ...c.unreadCount, [user._id]: 1 } } : c
+              ),
+            }));
+          }
+        } catch (error) {
+          console.error("lỗi khi đánh dấu chưa đọc", error);
+        }
+      },
+      toggleMute: async (conversationId) => {
+        try {
+          const res = await chatService.toggleMute(conversationId);
+          const { user } = useAuthStore.getState();
+          if (user) {
+            set((state) => ({
+              conversations: state.conversations.map((c) => {
+                if (c._id === conversationId) {
+                  const mutedBy = c.mutedBy || [];
+                  return {
+                    ...c,
+                    mutedBy: res.isMuted 
+                      ? [...mutedBy, user._id] 
+                      : mutedBy.filter(id => id !== user._id)
+                  };
+                }
+                return c;
+              })
+            }));
+          }
+        } catch (error) {
+          console.error("lỗi khi tắt thông báo", error);
+        }
+      },
+      toggleArchive: async (conversationId) => {
+        try {
+          const res = await chatService.toggleArchive(conversationId);
+          const { user } = useAuthStore.getState();
+          if (user) {
+            set((state) => ({
+              conversations: state.conversations.map((c) => {
+                if (c._id === conversationId) {
+                  const archivedBy = c.archivedBy || [];
+                  return {
+                    ...c,
+                    archivedBy: res.isArchived 
+                      ? [...archivedBy, user._id] 
+                      : archivedBy.filter(id => id !== user._id)
+                  };
+                }
+                return c;
+              })
+            }));
+          }
+        } catch (error) {
+          console.error("lỗi khi lưu trữ", error);
+        }
+      },
+      pinConversation: async (conversationId) => {
+        try {
+          const res = await chatService.pinConversation(conversationId);
+          const { user } = useAuthStore.getState();
+          if (user) {
+            set((state) => ({
+              conversations: state.conversations.map((c) => {
+                if (c._id === conversationId) {
+                  const pinnedBy = c.pinnedBy || [];
+                  return {
+                    ...c,
+                    pinnedBy: res.isPinned 
+                      ? [...pinnedBy, user._id] 
+                      : pinnedBy.filter(id => id !== user._id)
+                  };
+                }
+                return c;
+              })
+            }));
+          }
+        } catch (error) {
+          console.error("lỗi khi ghim đoạn chat", error);
         }
       },
       updateConversationWallpaper: (conversationId, wallpaper) => {

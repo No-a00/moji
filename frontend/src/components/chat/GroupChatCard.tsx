@@ -4,6 +4,7 @@ import type { Conversation } from '@/types/chat'
 import ChatCard from './ChatCard';
 import UnreadCountBadge from './UnreadCountBadge';
 import GroupChatAvatar from './GroupChatAvatar';
+import ConversationContextMenu from './ConversationContextMenu';
 
 
 const GroupChatCard = ({convo}:{convo:Conversation}) => {
@@ -43,6 +44,9 @@ const GroupChatCard = ({convo}:{convo:Conversation}) => {
             {convo.participants.length} thành viên
         </p>
     }
+    actionMenu={<ConversationContextMenu convoId={convo._id} />}
+    isMuted={convo.mutedBy?.includes(user._id)}
+    isPinned={convo.pinnedBy?.includes(user._id)}
     />
     )
 }

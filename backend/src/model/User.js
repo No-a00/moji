@@ -43,8 +43,19 @@ const userSchema   = new mongoose.Schema(
         phone:{
             type:String,
             sparse:true//cho phép null nhưng không được trùng
-        }
-        
+        },
+        blockedUsers: [{
+            type: mongoose.Schema.Types.ObjectId,
+            ref: 'User'
+        }],
+        isVerified: {
+            type: Boolean,
+            default: false
+        },
+        verificationToken: String,
+        verificationTokenExpires: Date,
+        resetPasswordToken: String,
+        resetPasswordExpires: Date
 
     },
     {

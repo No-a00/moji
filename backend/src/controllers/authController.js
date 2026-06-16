@@ -3,6 +3,7 @@ import User from '../model/User.js';
 import jwt from 'jsonwebtoken'
 import crypto from "crypto"
 import Session from '../model/Session.js'
+import { sendVerificationEmail, sendPasswordResetEmail } from '../libs/mail.js';
 
 
 const ACCESS_TOKEN_TTL = '30m'//thường là dưới 15m
@@ -23,16 +24,25 @@ export const signUp = async (req, res) => {
         //mã hóa password
         const hashedPassword = await bcrypt.hash(password, 10); //   salt = 10
 
+        // Tạo token xác thực
+        const verificationToken = crypto.randomBytes(32).toString('hex');
+        const verificationTokenExpires = new Date(Date.now() + 24 * 60 * 60 * 1000); // 24 giờ
+
         //tạo username mới 
         await User.create({
             username,
             hashedPassword,
             email,
             displayName: `${lastName} ${firstName}`,
-        })
+            verificationToken,
+            verificationTokenExpires
+        });
+
+        // Gửi email xác thực
+        await sendVerificationEmail(email, verificationToken);
 
         //return
-        return res.sendStatus(204);
+        return res.status(201).json({message: "Đăng ký thành công, vui lòng kiểm tra email để xác thực tài khoản."});
 
     } catch (error) {
         console.log('lỗi khi gọi signup',error);
@@ -52,6 +62,11 @@ export const signIn = async(req,res)=>{
         if(!user){
             return res.status(401).json({message:"username hoặc password không chính xác"});
 
+        }
+
+        // Kiểm tra xác thực email (cho phép những tài khoản cũ không có trường isVerified)
+        if (user.isVerified === false) {
+            return res.status(403).json({message: "Tài khoản chưa được xác thực. Vui lòng kiểm tra email."});
         }
         //kiểm tra password
         const passwordConnect = await bcrypt.compare(password,user.hashedPassword);
@@ -144,3 +159,78 @@ export const refreshToken = async(req,res)=>{
     }
 
 }
+
+// Xác thực email
+export const verifyEmail = async (req, res) => {
+    try {
+        const { token } = req.body;
+        const user = await User.findOne({
+            verificationToken: token,
+            verificationTokenExpires: { $gt: Date.now() }
+        });
+
+        if (!user) {
+            return res.status(400).json({ message: "Token xác thực không hợp lệ hoặc đã hết hạn" });
+        }
+
+        user.isVerified = true;
+        user.verificationToken = undefined;
+        user.verificationTokenExpires = undefined;
+        await user.save();
+
+        res.status(200).json({ message: "Xác thực email thành công" });
+    } catch (error) {
+        console.error('lỗi khi verify email', error);
+        res.status(500).json({ message: "lỗi hệ thống" });
+    }
+};
+
+// Quên mật khẩu
+export const forgotPassword = async (req, res) => {
+    try {
+        const { email } = req.body;
+        const user = await User.findOne({ email });
+
+        if (!user) {
+            return res.status(404).json({ message: "Không tìm thấy người dùng với email này" });
+        }
+
+        const resetToken = crypto.randomBytes(32).toString('hex');
+        user.resetPasswordToken = resetToken;
+        user.resetPasswordExpires = Date.now() + 3600000; // 1 giờ
+        await user.save();
+
+        await sendPasswordResetEmail(user.email, resetToken);
+
+        res.status(200).json({ message: "Đã gửi email đặt lại mật khẩu" });
+    } catch (error) {
+        console.error('lỗi khi forgot password', error);
+        res.status(500).json({ message: "lỗi hệ thống" });
+    }
+};
+
+// Đặt lại mật khẩu
+export const resetPassword = async (req, res) => {
+    try {
+        const { token, password } = req.body;
+        const user = await User.findOne({
+            resetPasswordToken: token,
+            resetPasswordExpires: { $gt: Date.now() }
+        });
+
+        if (!user) {
+            return res.status(400).json({ message: "Token đặt lại mật khẩu không hợp lệ hoặc đã hết hạn" });
+        }
+
+        const hashedPassword = await bcrypt.hash(password, 10);
+        user.hashedPassword = hashedPassword;
+        user.resetPasswordToken = undefined;
+        user.resetPasswordExpires = undefined;
+        await user.save();
+
+        res.status(200).json({ message: "Đặt lại mật khẩu thành công" });
+    } catch (error) {
+        console.error('lỗi khi reset password', error);
+        res.status(500).json({ message: "lỗi hệ thống" });
+    }
+};

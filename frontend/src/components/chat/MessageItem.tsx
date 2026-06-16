@@ -5,7 +5,7 @@ import UserAvatar from "./UserAvatar";
 import { Card } from "../ui/card";
 import { Dialog, DialogContent, DialogTrigger } from "../ui/dialog";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "../ui/dropdown-menu";
-import { Check, Edit2, MoreHorizontal, Pencil, Reply, Smile, Trash, Pin } from 'lucide-react';
+import { Check, Edit2, MoreHorizontal, Pencil, Reply, Smile, Trash, Pin, FileText, Download, Play, Pause } from 'lucide-react';
 import { useChatStore } from "@/stores/useChatStore";
 import { getThemeGradient } from "@/lib/themes";
 
@@ -230,8 +230,16 @@ const MessageItem = ({message,index,messages,selectedconvo,lastMessageStatus}:Me
             {/* Trích dẫn tin nhắn (Reply Preview) */}
             {message.replyTo && (
                 <div 
+                    onClick={() => {
+                        if (message.replyTo) {
+                            setTargetScrollMessageId(message.replyTo._id);
+                            // Cố gắng cuộn mượt luôn nếu có trên màn hình
+                            const el = document.getElementById("message-" + message.replyTo._id);
+                            if (el) el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                        }
+                    }}
                     className={cn(
-                        "relative mb-[-12px] pb-[16px] px-3 pt-2 rounded-t-2xl text-xs flex flex-col gap-1 cursor-pointer hover:brightness-95 transition-all opacity-80",
+                        "relative mb-[-12px] pb-[16px] px-3 pt-2 rounded-t-2xl text-xs flex flex-col gap-1 cursor-pointer hover:brightness-95 hover:scale-[1.01] transition-all opacity-80",
                         message.isOwn ? "bg-black/20 dark:bg-black/40 text-white items-end self-end" : "bg-muted text-foreground items-start self-start"
                     )}
                     style={{ maxWidth: "85%", width: "fit-content" }}
@@ -274,6 +282,52 @@ const MessageItem = ({message,index,messages,selectedconvo,lastMessageStatus}:Me
                         </DialogContent>
                         </Dialog>
                     </div>
+                    )}
+                    {message.fileUrl && !message.audioUrl && (
+                        <div className="mb-1 flex items-center gap-3 w-full min-w-[200px] max-w-sm">
+                            <div className={cn(
+                                "w-10 h-10 rounded-full flex items-center justify-center shrink-0", 
+                                message.isOwn ? "bg-white/20 text-white" : "bg-primary/10 text-primary"
+                            )}>
+                                <FileText className="w-5 h-5" />
+                            </div>
+                            <div className="flex flex-col flex-1 overflow-hidden min-w-0">
+                                <span 
+                                    className={cn(
+                                        "font-medium text-sm truncate",
+                                        message.isOwn ? "text-white" : "text-foreground"
+                                    )} 
+                                    title={message.fileName || "Tài liệu"}
+                                >
+                                    {message.fileName || "Tài liệu đính kèm"}
+                                </span>
+                                <span 
+                                    className={cn(
+                                        "text-xs mt-0.5", 
+                                        message.isOwn ? "text-white/70" : "text-muted-foreground"
+                                    )}
+                                >
+                                    {message.fileSize ? (message.fileSize / 1024 / 1024).toFixed(2) + " MB" : "Unknown size"}
+                                </span>
+                            </div>
+                            <a 
+                                href={message.fileUrl} 
+                                download={message.fileName || "download"} 
+                                target="_blank" 
+                                rel="noreferrer" 
+                                className={cn(
+                                    "p-2 rounded-full transition-colors shrink-0 flex items-center justify-center", 
+                                    message.isOwn ? "hover:bg-white/20 text-white" : "hover:bg-muted text-foreground"
+                                )}
+                            >
+                                <Download className="w-5 h-5" />
+                            </a>
+                        </div>
+                    )}
+                    {message.audioUrl && (
+                        <div className="mb-2">
+                            <audio controls src={message.audioUrl} className={cn("max-w-full rounded-full h-10 w-[200px] sm:w-[250px]", message.isOwn ? "invert brightness-150" : "")} />
+                        </div>
                     )}
                     {message.content && <p className="text-sm leading-relaxed break-words">{message.content}</p>}
                 </>

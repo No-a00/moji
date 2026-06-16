@@ -43,7 +43,9 @@ export interface Conversation {
   theme?: string;
   wallpaper?: string;
   pinnedMessages?: Message[];
-  seenBy?: Participant[];
+  mutedBy?: string[];
+  archivedBy?: string[];
+  pinnedBy?: string[];
   createdAt: string;
   updatedAt: string;
 }
@@ -58,6 +60,11 @@ export interface Message {
   senderId: string;
   content: string | null;
   imgUrl?: string | null;
+  fileUrl?: string | null;
+  fileName?: string | null;
+  fileSize?: number | null;
+  fileType?: string | null;
+  audioUrl?: string | null;
   isDeleted?: boolean;
   isEdited?: boolean;
   replyTo?: {

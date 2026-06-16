@@ -21,16 +21,16 @@ export const chatService = {
         console.log("✅ fecthNextCursor :",res.data.nextCursor);
         return {messages:res.data.message,cursor:res.data.nextCursor}
     },
-    async sendDirectMessage(recipientId:string,content:string="", imgUrl?:string ,conversationId?:string, replyTo?:string){
+    async sendDirectMessage(recipientId:string,content:string="", options?: {imgUrl?:string; fileUrl?:string; fileName?:string; fileSize?:number; fileType?:string; audioUrl?:string; conversationId?:string}, replyTo?:string){
         const res = await api.post("/messages/direct",{
-            recipientId,content,imgUrl,conversationId, replyTo
+            recipientId,content,...options, replyTo
         })
         console.log("✅ API DONE. Data.mess direct:", res.data.message);
         return res.data.message;
     }, 
-    async sendGroupMessage(conversationId:string,content:string="",imgUrl?:string, replyTo?:string){
+    async sendGroupMessage(conversationId:string,content:string="",options?: {imgUrl?:string; fileUrl?:string; fileName?:string; fileSize?:number; fileType?:string; audioUrl?:string}, replyTo?:string){
         const res = await api.post("/messages/group",{
-            conversationId,content,imgUrl, replyTo
+            conversationId,content,...options, replyTo
 
         })
         console.log("✅ API DONE. Data.mess:", res.data.message);
@@ -57,15 +57,23 @@ export const chatService = {
         const res = await api.post("/conversations", { type, memberIds, name });
         return res.data;
     },
-    async uploadImage(file: File): Promise<string> {
+    async uploadFile(file: File): Promise<{fileUrl?: string; imgUrl?: string; fileName?: string; fileSize?: number; fileType?: string}> {
         const formData = new FormData();
-        formData.append("image", file);
+        formData.append("file", file); // Tên field bên backend đã đổi thành 'file'
         const res = await api.post("/messages/upload", formData, {
             headers: {
                 "Content-Type": "multipart/form-data",
             },
         });
-        return res.data.imgUrl;
+        
+        // Nếu backend trả về fileUrl nhưng file là ảnh, gán vào imgUrl để tương thích
+        if (file.type.startsWith("image/")) {
+            return {
+                imgUrl: res.data.fileUrl,
+            }
+        }
+        
+        return res.data;
     },
     async unsendMessage(messageId: string) {
         const res = await api.delete(`/messages/${messageId}/unsend`);
@@ -78,6 +86,21 @@ export const chatService = {
     async reactToMessage(messageId: string, emoji: string) {
         const res = await api.post(`/messages/${messageId}/react`, { emoji });
         return res.data;
+    },
+    async markAsUnread(conversationId: string) {
+        const res = await api.put(`/conversations/${conversationId}/unread`);
+        return res.data;
+    },
+    async toggleMute(conversationId: string) {
+        const res = await api.put(`/conversations/${conversationId}/mute`);
+        return res.data;
+    },
+    async toggleArchive(conversationId: string) {
+        const res = await api.put(`/conversations/${conversationId}/archive`);
+        return res.data;
+    },
+    async pinConversation(conversationId: string) {
+        const res = await api.put(`/conversations/${conversationId}/pin-chat`);
+        return res.data;
     }
 }
-

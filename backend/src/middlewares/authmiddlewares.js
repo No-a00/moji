@@ -16,7 +16,7 @@ export const protectedRoute = (req,res,next)=>{
     jwt.verify(token,process.env.ACCESS_TOKEN_SECRET,async(err,decodeUser)=>{
         if(err){
             console.error(err)
-            return res.status(403).json({message:"Access  token không đúng hoặc hết hạn"});
+            return res.status(401).json({message:"Access token không đúng hoặc hết hạn"});
         }
         //tìm user
         const user =  await User.findById(decodeUser.userId).select('-hashedPassword')

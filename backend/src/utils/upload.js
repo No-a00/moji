@@ -21,16 +21,31 @@ const storage = multer.diskStorage({
 
 // Kiểm tra loại file
 const fileFilter = (req, file, cb) => {
-  if (file.mimetype.startsWith("image/")) {
+  const allowedMimes = [
+    "image/",
+    "audio/",
+    "video/",
+    "application/pdf",
+    "application/msword",
+    "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+    "application/vnd.ms-excel",
+    "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+    "application/zip",
+    "application/x-zip-compressed"
+  ];
+
+  const isAllowed = allowedMimes.some(mime => file.mimetype.startsWith(mime));
+  
+  if (isAllowed) {
     cb(null, true);
   } else {
-    cb(new Error("Chỉ hỗ trợ upload hình ảnh!"), false);
+    cb(new Error("Loại tệp không được hỗ trợ!"), false);
   }
 };
 
 const upload = multer({
   storage: storage,
-  limits: { fileSize: 5 * 1024 * 1024 }, // Giới hạn 5MB
+  limits: { fileSize: 20 * 1024 * 1024 }, // Giới hạn 20MB
   fileFilter: fileFilter,
 });
 

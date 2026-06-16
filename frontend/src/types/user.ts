@@ -9,6 +9,7 @@ export interface User{
     coverUrl?:string,
     bio?:string,
     phone?:string,
+    blockedUsers?: string[],
     createdAt?:string,
     updateAt?:string
 }

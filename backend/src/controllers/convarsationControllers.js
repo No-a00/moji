@@ -381,5 +381,96 @@ export const togglePinMessage = async (req, res) => {
     } catch (error) {
         console.error('Lỗi khi ghim/bỏ ghim tin nhắn:', error);
         return res.status(500).json({ message: 'Lỗi hệ thống' });
+        return res.status(500).json({ message: 'Lỗi hệ thống' });
+    }
+}
+
+export const markAsUnread = async (req, res) => {
+    try {
+        const { id: conversationId } = req.params;
+        const userId = req.user._id;
+
+        const conversation = await Conversation.findById(conversationId);
+        if (!conversation) return res.status(404).json({ message: 'Không tìm thấy cuộc trò chuyện' });
+
+        if (!conversation.unreadCount) {
+            conversation.unreadCount = new Map();
+        }
+        conversation.unreadCount.set(userId.toString(), 1);
+        await conversation.save();
+
+        return res.status(200).json({ message: "Đã đánh dấu chưa đọc", conversationId });
+    } catch (error) {
+        console.error('Lỗi khi đánh dấu chưa đọc', error);
+        return res.status(500).json({ message: 'Lỗi hệ thống' });
+    }
+}
+
+export const toggleMute = async (req, res) => {
+    try {
+        const { id: conversationId } = req.params;
+        const userId = req.user._id;
+
+        const conversation = await Conversation.findById(conversationId);
+        if (!conversation) return res.status(404).json({ message: 'Không tìm thấy cuộc trò chuyện' });
+
+        const isMuted = conversation.mutedBy.includes(userId);
+        if (isMuted) {
+            conversation.mutedBy = conversation.mutedBy.filter(id => id.toString() !== userId.toString());
+        } else {
+            conversation.mutedBy.push(userId);
+        }
+        await conversation.save();
+
+        return res.status(200).json({ message: isMuted ? "Đã bật thông báo" : "Đã tắt thông báo", isMuted: !isMuted, conversationId });
+    } catch (error) {
+        console.error('Lỗi khi toggle mute', error);
+        return res.status(500).json({ message: 'Lỗi hệ thống' });
+    }
+}
+
+export const toggleArchive = async (req, res) => {
+    try {
+        const { id: conversationId } = req.params;
+        const userId = req.user._id;
+
+        const conversation = await Conversation.findById(conversationId);
+        if (!conversation) return res.status(404).json({ message: 'Không tìm thấy cuộc trò chuyện' });
+
+        const isArchived = conversation.archivedBy.includes(userId);
+        if (isArchived) {
+            conversation.archivedBy = conversation.archivedBy.filter(id => id.toString() !== userId.toString());
+        } else {
+            conversation.archivedBy.push(userId);
+        }
+        await conversation.save();
+
+        return res.status(200).json({ message: isArchived ? "Đã bỏ lưu trữ" : "Đã lưu trữ đoạn chat", isArchived: !isArchived, conversationId });
+    } catch (error) {
+        console.error('Lỗi khi toggle archive', error);
+        return res.status(500).json({ message: 'Lỗi hệ thống' });
+    }
+}
+
+export const togglePinConversation = async (req, res) => {
+    try {
+        const { id: conversationId } = req.params;
+        const userId = req.user._id;
+
+        const conversation = await Conversation.findById(conversationId);
+        if (!conversation) return res.status(404).json({ message: 'Không tìm thấy cuộc trò chuyện' });
+
+        const isPinned = conversation.pinnedBy?.includes(userId);
+        if (isPinned) {
+            conversation.pinnedBy = conversation.pinnedBy.filter(id => id.toString() !== userId.toString());
+        } else {
+            conversation.pinnedBy.push(userId);
+        }
+        await conversation.save();
+
+        return res.status(200).json({ message: isPinned ? "Đã bỏ ghim đoạn chat" : "Đã ghim đoạn chat", isPinned: !isPinned, conversationId });
+    } catch (error) {
+        console.error('Lỗi khi toggle pin conversation', error);
+        return res.status(500).json({ message: 'Lỗi hệ thống' });
     }
 }

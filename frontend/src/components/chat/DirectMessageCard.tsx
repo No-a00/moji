@@ -2,18 +2,22 @@ import type { Conversation } from '@/types/chat'
 import ChatCard from './ChatCard'
 import { useAuthStore } from '@/stores/useAuthStore'
 import { useChatStore } from '@/stores/useChatStore'
+import { useSocketStore } from '@/stores/useSocketStore'
 import { cn } from '@/lib/utils'
 import UserAvatar from './UserAvatar'
 import StatusBadge from './StatusBadge'
 import UnreadCountBadge from './UnreadCountBadge'
+import ConversationContextMenu from './ConversationContextMenu'
 
 const DirectMessageCard = ({convo}:{convo:Conversation}) => {
    const {user} = useAuthStore();
    const {activeConversationId,setActiveConversation,messages,fetchMessages} = useChatStore();
+   const {onlineUsers} = useSocketStore();
     if(!user) return null;
     const ortherUser = convo.participants.find((p)=>p._id!==user._id);
     if(!ortherUser)return null;
     const unreadCount = convo?.unreadCount?.[user._id] || 0;
+    const isOnline = onlineUsers.includes(ortherUser._id);
     let lastMessageText = convo.lastMessage?.content ?? "";
     if (!lastMessageText && convo.lastMessage?.hasImage) {
         lastMessageText = "Đã gửi 1 hình ảnh";
@@ -40,9 +44,8 @@ const DirectMessageCard = ({convo}:{convo:Conversation}) => {
         type="sidebar"
         name={ortherUser.displayName??""}
         avatarUrl={ortherUser.avatarUrl??undefined}
-
         />
-        <StatusBadge status='online'/>
+        {isOnline && <StatusBadge status='online'/>}
         {unreadCount>0&&<UnreadCountBadge unreadCount={unreadCount}/>}
         </>
     }
@@ -51,6 +54,9 @@ const DirectMessageCard = ({convo}:{convo:Conversation}) => {
             {lastMessageText}
         </p>
     }
+    actionMenu={<ConversationContextMenu convoId={convo._id} otherUserId={ortherUser._id} />}
+    isMuted={convo.mutedBy?.includes(user._id)}
+    isPinned={convo.pinnedBy?.includes(user._id)}
     />
 }
 

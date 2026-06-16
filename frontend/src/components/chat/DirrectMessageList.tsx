@@ -1,12 +1,17 @@
 
 import { useChatStore } from '@/stores/useChatStore'
 import DirectMessageCard from './DirectMessageCard';
+import { useAuthStore } from '@/stores/useAuthStore';
+
 const DirrectMessageList = () => {
   const {conversations} = useChatStore();
+  const {user} = useAuthStore();
   
-  if(!conversations)return null;
+  if(!conversations || !user)return null;
 
-  const directConversations = conversations.filter((convo)=>convo.type ==="direct")
+  const directConversations = conversations.filter((convo) => 
+    convo.type === "direct" && !convo.archivedBy?.includes(user._id)
+  );
   
   return (
     <div className='flex-1 overflow-y-auto p-2 space-y-2'>

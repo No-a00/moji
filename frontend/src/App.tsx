@@ -3,6 +3,9 @@ import {Toaster} from 'sonner'
 
 import SignInPage from "./pages/SignInPage";
 import SignUpPage from "./pages/SignUpPage";
+import VerifyEmailPage from "./pages/VerifyEmailPage";
+import ForgotPasswordPage from "./pages/ForgotPasswordPage";
+import ResetPasswordPage from "./pages/ResetPasswordPage";
 import ChatAppPages from "./pages/ChatAppPages";
 import ProtectRoute from "./components/auth/ProtectRoute";
 import { useThemeStore } from "./stores/useThemeStore";
@@ -23,6 +26,9 @@ function App() {
           {/* public routes */}
           <Route path="/signin" element={<SignInPage />} />
           <Route path="/signup" element={<SignUpPage />} />
+          <Route path="/verify-email/:token" element={<VerifyEmailPage />} />
+          <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+          <Route path="/reset-password/:token" element={<ResetPasswordPage />} />
           {/* protectect routes */}
           {/* todo:tạo protected route */}
           <Route element={<ProtectRoute />}>

@@ -2,7 +2,7 @@ import {create} from 'zustand'
 import { toast } from 'sonner'
 import { authService } from '@/Service/authService';
 import type { AuthState } from '@/types/store';
-import {persist} from "zustand/middleware"
+import {persist, createJSONStorage} from "zustand/middleware"
 import api from '@/lib/axios';
 import { useChatStore } from './useChatStore';
 
@@ -40,9 +40,9 @@ export const useAuthStore = create<AuthState>()(
             useChatStore.getState().fetchConversations();
 
             toast.success("chào mừng bạn quaym lại Moji 🎉")            
-        } catch (error) {
+        } catch (error: any) {
             console.error(error);
-            toast.error('Đăng nhập không thành công!')
+            toast.error(error.response?.data?.message || 'Đăng nhập không thành công!');
         }finally{
             set({loading:false});
         }
@@ -93,9 +93,11 @@ export const useAuthStore = create<AuthState>()(
         setAccessToken(accessToken);
 
         await fetchMe();   
-    } catch (error) {
-        console.error(error);
-        toast.error('làm mới phiên không thành công.Vui lòng đăng nhập lại!');
+    } catch (error: any) {
+        if (error.response?.status !== 401) {
+            console.error(error);
+            toast.error('Lỗi kết nối hoặc phiên bản đã hết hạn!');
+        }
         get().clearState();
     } finally {
         set({loading:false});
@@ -103,10 +105,34 @@ export const useAuthStore = create<AuthState>()(
   },
     setAccessToken: (accessToken) => {
         set({accessToken});
+    },
+    blockUser: async (id: string) => {
+        try {
+            const data = await authService.blockUser(id);
+            toast.success(data.message);
+            // Optionally update user state if user.blockedUsers exists in frontend model
+            const { user } = get();
+            if (user && data.blockedUserId) {
+                const isBlocked = data.isBlocked;
+                const blockedUsers = user.blockedUsers || [];
+                set({
+                    user: {
+                        ...user,
+                        blockedUsers: isBlocked 
+                            ? [...blockedUsers, data.blockedUserId]
+                            : blockedUsers.filter((bId: string) => bId !== data.blockedUserId)
+                    }
+                });
+            }
+        } catch (error: any) {
+            console.error("Lỗi khi chặn người dùng:", error);
+            toast.error(error.response?.data?.message || 'Lỗi khi chặn người dùng');
+        }
     }
 
 }),{
     name:'auth-storage',
+    storage: createJSONStorage(() => sessionStorage),
     partialize:(state)=>({user:state.user})
 })
 )

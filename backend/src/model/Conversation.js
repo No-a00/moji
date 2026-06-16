@@ -98,7 +98,25 @@ const conversationSchema = new mongoose.Schema({
         type: Map,
         of: Number,
         default: {},
-    }
+    },
+    mutedBy: [
+        {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: 'User'
+        }
+    ],
+    archivedBy: [
+        {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: 'User'
+        }
+    ],
+    pinnedBy: [
+        {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: 'User'
+        }
+    ]
 }, {
     timestamps: true,
 });

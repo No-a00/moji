@@ -29,12 +29,20 @@ const ChatWindowHeader = ({ chat }: { chat?: Conversation }) => {
   return (
     <header className="sticky top-0 z-10 px-4 py-2 flex items-center bg-background">
       <div className="flex items-center gap-2 flex-1">
-        <SidebarTrigger className="-ml-1 text-foreground" />
+        {/* Nút Back trên Mobile */}
+        <button 
+          className="md:hidden p-2 -ml-2 rounded-full hover:bg-muted text-foreground transition-colors"
+          onClick={() => useChatStore.getState().setActiveConversation(null)}
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m15 18-6-6 6-6"/></svg>
+        </button>
+
+        <SidebarTrigger className="-ml-1 text-foreground hidden md:flex" />
         <Separator
           data-orientation="vertical"
           aria-orientation="vertical"
           role="separator"
-          className="mr-2 data-[orientation=vertical]:h-4 z-10 w-[1px] bg-gray-200"
+          className="mr-2 data-[orientation=vertical]:h-4 z-10 w-[1px] bg-gray-200 hidden md:block"
         />
         <div className="p-2 flex-1 flex items-center gap-3">
           {/* avatar */}

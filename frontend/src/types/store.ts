@@ -18,6 +18,7 @@ export interface AuthState {
   fetchMe: () => Promise<void>;
   refresh: () => Promise<void>;
   setAccessToken: (AccessToken: string) => void;
+  blockUser: (id: string) => Promise<void>;
 }
 
 export interface ThemeState{
@@ -47,14 +48,27 @@ export interface ChatState{
   sendDirectMessage:(
     recipientId:string,
     content:string,
-    imgUrl?:string,
-    replyTo?:string,
+    options?: {
+      imgUrl?:string;
+      fileUrl?:string;
+      fileName?:string;
+      fileSize?:number;
+      fileType?:string;
+      audioUrl?:string;
+      conversationId?:string;
+    }
   )=>Promise<void>;
   sendGroupMessage:(
     conversationId:string,
     content:string,
-    imgUrl?:string,
-    replyTo?:string,
+    options?: {
+      imgUrl?:string;
+      fileUrl?:string;
+      fileName?:string;
+      fileSize?:number;
+      fileType?:string;
+      audioUrl?:string;
+    }
   )=>Promise<void>;
   addMessage:(message:Message)=>void;
   updateConversationFromSocket:(data:{
@@ -80,4 +94,8 @@ export interface ChatState{
   editMessage: (messageId: string, content: string) => Promise<void>;
   reactToMessage: (messageId: string, emoji: string) => Promise<void>;
   updateMessage: (message: Message) => void;
+  markAsUnread: (conversationId: string) => Promise<void>;
+  toggleMute: (conversationId: string) => Promise<void>;
+  toggleArchive: (conversationId: string) => Promise<void>;
+  pinConversation: (conversationId: string) => Promise<void>;
 }
