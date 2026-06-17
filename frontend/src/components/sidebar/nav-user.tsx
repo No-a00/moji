@@ -28,7 +28,7 @@ import {
 } from "@/components/ui/sidebar"
 import type { User } from "@/types/user"
 import Logout from "../auth/Logout"
-import { toast } from "sonner"
+
 import ProfileModal from "../chat/ProfileModal"
 import NotificationsModal from "../chat/NotificationsModal"
 

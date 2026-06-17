@@ -1,5 +1,5 @@
 import { useState, useRef } from "react"
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
+import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog"
 import { useAuthStore } from "@/stores/useAuthStore"
 import UserAvatar from "./UserAvatar"
 import { Button } from "../ui/button"

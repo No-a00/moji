@@ -1,4 +1,4 @@
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { useEffect, useState } from "react";
 import { authService } from "@/Service/authService";
 import type { User } from "@/types/user";

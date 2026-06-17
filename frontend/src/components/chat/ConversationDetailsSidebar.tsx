@@ -112,7 +112,7 @@ const ConversationDetailsSidebar = ({ chat }: ConversationDetailsProps) => {
                     <DialogTrigger asChild>
                       <div className="aspect-square rounded-md overflow-hidden bg-muted cursor-pointer hover:opacity-80 transition-opacity">
                         <img 
-                          src={m.imgUrl} 
+                          src={m.imgUrl || undefined} 
                           alt="Media" 
                           className="w-full h-full object-cover" 
                         />
@@ -120,7 +120,7 @@ const ConversationDetailsSidebar = ({ chat }: ConversationDetailsProps) => {
                     </DialogTrigger>
                     <DialogContent className="max-w-4xl bg-transparent border-none shadow-none flex justify-center items-center">
                       <img 
-                        src={m.imgUrl} 
+                        src={m.imgUrl || undefined} 
                         alt="Media full" 
                         className="max-w-full max-h-[80vh] object-contain rounded-md" 
                       />
@@ -208,8 +208,10 @@ const ConversationDetailsSidebar = ({ chat }: ConversationDetailsProps) => {
                     if (!file) return;
                     try {
                       setIsUploading(true);
-                      const imgUrl = await chatService.uploadImage(file);
-                      await changeWallpaper(chat._id, imgUrl);
+                      const data = await chatService.uploadFile(file);
+                      if (data.imgUrl || data.fileUrl) {
+                        await changeWallpaper(chat._id, data.imgUrl || data.fileUrl || "");
+                      }
                       toast.success("Đã cập nhật hình nền");
                     } catch (error) {
                       toast.error("Lỗi khi tải ảnh lên");

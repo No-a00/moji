@@ -5,7 +5,7 @@ import UserAvatar from "./UserAvatar";
 import { Card } from "../ui/card";
 import { Dialog, DialogContent, DialogTrigger } from "../ui/dialog";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "../ui/dropdown-menu";
-import { Check, Edit2, MoreHorizontal, Pencil, Reply, Smile, Trash, Pin, FileText, Download, Play, Pause } from 'lucide-react';
+import { MoreHorizontal, Pencil, Reply, Smile, Trash, Pin, FileText, Download } from 'lucide-react';
 import { useChatStore } from "@/stores/useChatStore";
 import { getThemeGradient } from "@/lib/themes";
 

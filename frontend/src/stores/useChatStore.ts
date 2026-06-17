@@ -162,7 +162,7 @@ export const useChatStore = create<ChatState>((set, get) => ({
           convo.lastMessage = {
             _id: lastMessage._id,
             content: lastMessage.content || "",
-            hasImage: lastMessage.hasImage || false,
+            hasImage: !!lastMessage.imgUrl,
             createdAt: lastMessage.createdAt,
             sender: {
               _id: lastMessage.senderId,

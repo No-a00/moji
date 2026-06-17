@@ -20,7 +20,7 @@ const ChatWindowFooter = ({seletedConvo}:{seletedConvo:Conversation}) => {
   const fileInputRef = useRef<HTMLInputElement>(null);
   
   const isTypingRef = useRef(false);
-  const typingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const typingTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const [isRecording, setIsRecording] = useState(false);
   const [recordingDuration, setRecordingDuration] = useState(0);
@@ -28,7 +28,7 @@ const ChatWindowFooter = ({seletedConvo}:{seletedConvo:Conversation}) => {
   
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const audioChunksRef = useRef<BlobPart[]>([]);
-  const durationIntervalRef = useRef<NodeJS.Timeout | null>(null);
+  const durationIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   if(!user)return null;
 

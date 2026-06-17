@@ -12,7 +12,8 @@ interface Friend {
 
 const FriendSidebarList = () => {
   const [friends, setFriends] = useState<Friend[]>([]);
-  const { createConversation, selectedConvo } = useChatStore();
+  const { createConversation, activeConversationId, conversations } = useChatStore();
+  const selectedConvo = conversations.find(c => c._id === activeConversationId);
 
   useEffect(() => {
     const fetchFriends = async () => {
@@ -43,7 +44,7 @@ const FriendSidebarList = () => {
       {friends.map((friend) => {
         // Kiểm tra xem bạn bè này có phải là người đang chat không
         const isSelected = selectedConvo?.type === 'direct' && 
-                           selectedConvo.participants.some(p => p._id === friend._id);
+                           selectedConvo.participants.some((p: { _id: string }) => p._id === friend._id);
 
         return (
           <button
