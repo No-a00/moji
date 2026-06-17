@@ -128,7 +128,7 @@ const MessageItem = ({message,index,messages,selectedconvo,lastMessageStatus}:Me
         
         {/* avartar */}
         {!message.isOwn&&(
-            <div className="w-8 flex items-end">
+            <div className="w-8 flex items-end shrink-0">
                 {!isNextSameSender && (
                     <UserAvatar
                     type="chat"

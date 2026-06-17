@@ -121,7 +121,8 @@ const ChatWindowFooter = ({seletedConvo}:{seletedConvo:Conversation}) => {
       };
 
       mediaRecorder.onstop = () => {
-        const audioBlob = new Blob(audioChunksRef.current, { type: 'audio/webm' });
+        const mimeType = mediaRecorderRef.current?.mimeType || 'audio/webm';
+        const audioBlob = new Blob(audioChunksRef.current, { type: mimeType });
         setAudioBlob(audioBlob);
       };
 
@@ -161,7 +162,13 @@ const ChatWindowFooter = ({seletedConvo}:{seletedConvo:Conversation}) => {
     if (!audioBlob) return;
     try {
       setIsUploading(true);
-      const file = new File([audioBlob], `voice-note-${Date.now()}.webm`, { type: 'audio/webm' });
+      const mimeType = audioBlob.type || 'audio/webm';
+      let ext = 'webm';
+      if (mimeType.includes('mp4')) ext = 'm4a';
+      else if (mimeType.includes('ogg')) ext = 'ogg';
+      else if (mimeType.includes('wav')) ext = 'wav';
+      
+      const file = new File([audioBlob], `voice-note-${Date.now()}.${ext}`, { type: mimeType });
       const data = await chatService.uploadFile(file);
       await sendMessage({...data, audioUrl: data.fileUrl});
       cancelRecording();
