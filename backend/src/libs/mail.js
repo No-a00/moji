@@ -3,14 +3,27 @@ import dotenv from 'dotenv';
 
 dotenv.config();
 
-// Sử dụng biến môi trường hoặc in ra console nếu chưa cài đặt
+// Sử dụng cấu hình tường minh cho Gmail thay vì chỉ khai báo service
 const transporter = nodemailer.createTransport({
-    service: 'gmail',
+    host: 'smtp.gmail.com',
+    port: 465,
+    secure: true, // dùng SSL
     auth: {
         user: process.env.EMAIL_USER,
         pass: process.env.EMAIL_PASS
     }
 });
+
+// Kiểm tra cấu hình email ngay khi server khởi động
+if (process.env.EMAIL_USER && process.env.EMAIL_PASS) {
+    transporter.verify(function(error, success) {
+        if (error) {
+            console.error('Lỗi cấu hình Email (Render):', error);
+        } else {
+            console.log('Server Email đã sẵn sàng để gửi tin nhắn!');
+        }
+    });
+}
 
 export const sendVerificationEmail = async (email, token) => {
     const url = `${process.env.CLIENT_URL || 'http://localhost:5173'}/verify-email/${token}`;
