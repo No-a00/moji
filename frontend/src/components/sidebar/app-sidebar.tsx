@@ -29,7 +29,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const {isDark,toggleTheme} = useThemeStore();
   const {user} = useAuthStore();
   return (
-    <Sidebar variant="inset" {...props}>
+    <Sidebar variant="inset" collapsible="none" className="!w-full md:!w-[--sidebar-width] border-r-0 md:border-r" {...props}>
       {/* header */}
       <SidebarHeader>
         <SidebarMenu>

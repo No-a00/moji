@@ -11,18 +11,24 @@ const ChatAppPages = () => {
 
  return( 
  <SidebarProvider >
-    <div className={cn(
-      "h-full w-full md:flex shrink-0 transition-all duration-300 md:w-auto", 
-      activeConversationId ? "hidden md:block" : "block"
-    )}>
-      <AppSidebar/>
-    </div>
-   
-    <div className={cn(
-      "flex h-screen w-full p-0 md:p-2 transition-all duration-300",
-      activeConversationId ? "block" : "hidden md:flex"
-    )}>
-       <ChatWindowLayout/>
+    <div className="relative flex h-[100dvh] w-full overflow-hidden md:h-screen">
+      
+      {/* Sidebar Pane */}
+      <div className={cn(
+        "absolute inset-0 z-10 w-full transition-transform duration-300 ease-in-out md:relative md:w-auto md:translate-x-0 md:flex md:shrink-0",
+        activeConversationId ? "-translate-x-full" : "translate-x-0"
+      )}>
+        <AppSidebar/>
+      </div>
+
+      {/* Chat Window Pane */}
+      <div className={cn(
+        "absolute inset-0 z-20 w-full bg-background transition-transform duration-300 ease-in-out md:relative md:flex md:flex-1 md:translate-x-0 md:p-2",
+        activeConversationId ? "translate-x-0" : "translate-x-full"
+      )}>
+        <ChatWindowLayout/>
+      </div>
+
     </div>
 
      
