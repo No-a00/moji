@@ -20,13 +20,13 @@ const UserAvatar = ({type="sidebar",name,avatarUrl,className}:IUserAvatarProps) 
     className={cn(className??"",
         type==="sidebar" && "size-12 text-base",
         type==="chat"&&"size-8 text-sm",
-        type=="profile"&&"size-24 text-3xl shadow-md"
-
+        type=="profile"&&"size-24 text-3xl shadow-md",
+        "shrink-0"
     )}
     
     >
         <AvatarImage src={avatarUrl} alt={name} />
-        <AvatarFallback className={`${bgColor} flex items-center justify-center w-8 h-8 bg-blue-500 text-white font-semibold rounded-full`}>
+        <AvatarFallback className={`${bgColor} flex items-center justify-center w-full h-full bg-blue-500 text-white font-semibold rounded-full`}>
             {name.charAt(0)}
         </AvatarFallback>
     </Avatar>

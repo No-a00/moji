@@ -4,10 +4,27 @@ import { AppSidebar } from "@/components/sidebar/app-sidebar"
 import {  SidebarProvider } from "@/components/ui/sidebar"
 import { useChatStore } from "@/stores/useChatStore"
 import { cn } from "@/lib/utils"
-
+import { useEffect } from "react"
 
 const ChatAppPages = () => {
-   const { activeConversationId } = useChatStore();
+   const { activeConversationId, setActiveConversation } = useChatStore();
+
+   // Xử lý nút Back trên điện thoại: khi đang mở chat mà vuốt lại thì đóng chat thay vì thoát web
+   useEffect(() => {
+     if (activeConversationId) {
+       window.history.pushState({ chatOpen: true }, '');
+     }
+   }, [activeConversationId]);
+
+   useEffect(() => {
+     const handlePopState = (e: PopStateEvent) => {
+       if (useChatStore.getState().activeConversationId) {
+         useChatStore.getState().setActiveConversation(null);
+       }
+     };
+     window.addEventListener('popstate', handlePopState);
+     return () => window.removeEventListener('popstate', handlePopState);
+   }, []);
 
  return( 
  <SidebarProvider >

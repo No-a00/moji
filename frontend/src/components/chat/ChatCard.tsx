@@ -40,7 +40,7 @@ const ChatCard = ({
       onClick={() => onSelect(convoId)}
     >
       <div className="flex items-center gap-3">
-        <div className="relative">{leftSection}</div>
+        <div className="relative shrink-0">{leftSection}</div>
         <div className="flex-1 min-w-0">
           <div className="flex items-center justify-between mb-1">
             <h3

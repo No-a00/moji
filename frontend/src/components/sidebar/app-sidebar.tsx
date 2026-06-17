@@ -71,7 +71,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         {/* chats */}
         <Collapsible defaultOpen className="group/collapsible">
           <SidebarGroup>
-            <SidebarGroupLabel asChild className="uppercase flex justify-between cursor-pointer w-full group-data-[state=open]/collapsible:hover:bg-transparent">
+            <SidebarGroupLabel asChild className="uppercase flex justify-between cursor-pointer w-full group-data-[state=open]/collapsible:hover:bg-transparent pr-8">
               <CollapsibleTrigger>
                 <span className="flex-1">đoạn chat</span>
                 <ChevronDown className="w-4 h-4 text-muted-foreground transition-transform duration-200 group-data-[state=open]/collapsible:rotate-180" />
@@ -93,7 +93,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         {/* friends */}
         <Collapsible className="group/collapsible">
           <SidebarGroup>
-            <SidebarGroupLabel asChild className="uppercase flex justify-between cursor-pointer w-full group-data-[state=open]/collapsible:hover:bg-transparent">
+            <SidebarGroupLabel asChild className="uppercase flex justify-between cursor-pointer w-full group-data-[state=open]/collapsible:hover:bg-transparent pr-8">
               <CollapsibleTrigger>
                 <span className="flex-1">bạn bè</span>
                 <ChevronDown className="w-4 h-4 text-muted-foreground transition-transform duration-200 group-data-[state=open]/collapsible:rotate-180" />

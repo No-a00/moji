@@ -254,7 +254,7 @@ const MessageItem = ({message,index,messages,selectedconvo,lastMessageStatus}:Me
             )}
 
             <Card className={cn(
-            "p-3 relative", 
+            "px-3.5 py-2 w-fit max-w-full relative shadow-sm", 
             borderRadiusClass, 
             message.isDeleted ? "border border-border bg-transparent text-muted-foreground italic" : 
                 (message.isOwn ? `text-white border-0 shadow-[var(--shadow-bubble)] ${getThemeGradient(selectedconvo.theme)}` : "chat-bubble-received")
@@ -366,7 +366,7 @@ const MessageItem = ({message,index,messages,selectedconvo,lastMessageStatus}:Me
 
         {/* seen/dlivered / avatars */}
         {message.isOwn && message._id === selectedconvo.lastMessage?._id && (
-            <div className="flex justify-end mt-0.5 pr-1">
+            <div className="flex justify-end mt-0.5">
                 {selectedconvo.type === 'direct' ? (
                     <span className={cn("text-[11px] px-1", lastMessageStatus === "seen" ? "text-primary" : "text-muted-foreground")}>
                         {lastMessageStatus === "seen" ? "Đã xem" : "Đã gửi"}
