@@ -20,6 +20,11 @@ dotenv.config();
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
+console.log('=== KIỂM TRA BIẾN MÔI TRƯỜNG ===');
+console.log('EMAIL_USER:', process.env.EMAIL_USER ? `Đã nhận được (${process.env.EMAIL_USER})` : 'BỊ THIẾU HOẶC SAI TÊN');
+console.log('EMAIL_PASS:', process.env.EMAIL_PASS ? 'Đã nhận được (***)' : 'BỊ THIẾU HOẶC SAI TÊN');
+console.log('==================================');
+
 const app = express();
 const PORT = process.env.PORT || 5001;
 
