@@ -38,8 +38,10 @@ export const signUp = async (req, res) => {
             verificationTokenExpires
         });
 
-        // Gửi email xác thực
-        await sendVerificationEmail(email, verificationToken);
+        // Gửi email xác thực (chạy ngầm để không làm chậm response)
+        sendVerificationEmail(email, verificationToken).catch(err => {
+            console.error('Lỗi khi gửi email xác thực ngầm:', err);
+        });
 
         //return
         return res.status(201).json({message: "Đăng ký thành công, vui lòng kiểm tra email để xác thực tài khoản."});

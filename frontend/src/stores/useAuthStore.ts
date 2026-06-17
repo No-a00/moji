@@ -25,6 +25,8 @@ export const useAuthStore = create<AuthState>()(
         } catch (error) {
             console.error(error);
             toast.error('Đăng kí không thành công');
+        } finally {
+            set({loading:false});
         }
     },
     signIn:async(username,password)=>{
