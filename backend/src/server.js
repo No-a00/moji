@@ -37,11 +37,10 @@ app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 app.use('/api/auth',authRouter);
 
 //private routers
-app.use(protectedRoute)
-app.use('/api/users',userRoute);
-app.use('/api/friend',friendRoute);
-app.use('/api/messages',messageRoute);
-app.use('/api/conversations',ConversationRoute)
+app.use('/api/users', protectedRoute, userRoute);
+app.use('/api/friend', protectedRoute, friendRoute);
+app.use('/api/messages', protectedRoute, messageRoute);
+app.use('/api/conversations', protectedRoute, ConversationRoute);
 
 conectDB().then(() => {
     // Phục vụ frontend tĩnh khi chạy production
