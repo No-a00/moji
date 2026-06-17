@@ -35,10 +35,11 @@ export const signUp = async (req, res) => {
             email,
             displayName: `${lastName} ${firstName}`,
             verificationToken,
-            verificationTokenExpires
+            verificationTokenExpires,
+            isVerified: true // Tự động xác thực tài khoản
         });
 
-        // Gửi email xác thực (chạy ngầm để không làm chậm response)
+        // Gửi email xác thực (chạy ngầm, nếu Render lỗi thì bỏ qua)
         sendVerificationEmail(email, verificationToken).catch(err => {
             console.error('Lỗi khi gửi email xác thực ngầm:', err);
         });
@@ -66,10 +67,11 @@ export const signIn = async(req,res)=>{
 
         }
 
-        // Kiểm tra xác thực email (cho phép những tài khoản cũ không có trường isVerified)
-        if (user.isVerified === false) {
-            return res.status(403).json({message: "Tài khoản chưa được xác thực. Vui lòng kiểm tra email."});
-        }
+        // Tạm thời vô hiệu hóa kiểm tra xác thực để dùng được trên Render Free
+        // if (user.isVerified === false) {
+        //     return res.status(403).json({message: "Tài khoản chưa được xác thực. Vui lòng kiểm tra email."});
+        // }
+        
         //kiểm tra password
         const passwordConnect = await bcrypt.compare(password,user.hashedPassword);
         if(!passwordConnect){
