@@ -7,7 +7,7 @@ import { cn } from "@/lib/utils"
 import { useEffect } from "react"
 
 const ChatAppPages = () => {
-   const { activeConversationId, setActiveConversation } = useChatStore();
+   const { activeConversationId } = useChatStore();
 
    // Xử lý nút Back trên điện thoại: khi đang mở chat mà vuốt lại thì đóng chat thay vì thoát web
    useEffect(() => {
@@ -17,7 +17,7 @@ const ChatAppPages = () => {
    }, [activeConversationId]);
 
    useEffect(() => {
-     const handlePopState = (e: PopStateEvent) => {
+     const handlePopState = () => {
        if (useChatStore.getState().activeConversationId) {
          useChatStore.getState().setActiveConversation(null);
        }
