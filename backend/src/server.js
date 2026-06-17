@@ -21,7 +21,7 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 const app = express();
-const POST = process.env.POST || 5001;
+const PORT = process.env.PORT || 5001;
 
 // Tạo HTTP Server bao bọc express app để dùng cho Socket.io
 const server = createServer(app);
@@ -53,7 +53,7 @@ conectDB().then(() => {
         });
     }
 
-    server.listen(POST, () => {
-        console.log(`server bắt đầu trên cổng ${POST}`);
+    server.listen(PORT, () => {
+        console.log(`server bắt đầu trên cổng ${PORT}`);
     });
 });
